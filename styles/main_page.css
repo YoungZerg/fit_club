@@ -1,0 +1,20 @@
+.carousel-inner {
+    max-width: 1024px;
+    margin: auto;
+    height: 500px; /* Высота карусели */
+}
+
+.carousel-inner img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Обрезка или масштабирование изображения */
+}
+
+.carousel-caption {
+    text-align: left; /* Выравнивание текста по левому краю */
+    bottom: 30%; /* Приподнять текст и кнопку вверх */
+    right: 40%; /* Центрирование по правому краю */
+    transform: translateX(0%); /* Корректировка положения */
+    background-color: rgba(0, 0, 0, 0.1); /* Небольшой фон для улучшения читаемости */
+    padding: 10px;
+}
