@@ -26,8 +26,8 @@
         <div class="row">
             {%if user_info.profile_pic_path is not none%}
             <div class="col-md-4 text-center position-relative">
-                <img src="{{user_info.profile_pic_path}}" class="rounded-circle profile-img" alt="Profile Picture">
-                <a href="/edit-profiel">
+                <img src="{{ url_for('static', filename='images/uploads/customers/' + user_info.profile_pic_path) }}" class="rounded-circle profile-img" alt="Profile Picture">
+                <a href="/edit-profile">
                     <img src="../static/images/pen(1).png" class="edit-icon" alt="Edit Profile">
                 </a>
             </div>
