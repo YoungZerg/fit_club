@@ -41,7 +41,7 @@
                 <div class="col-md-4 mb-4">
                     <div class="card h-100">
                         {% if product.picture %}
-                            <img src="{{ url_for('static', filename='images/uploads/customers/' + product.picture) }}" class="card-img-top" alt="Equipment Photo">
+                            <img src="{{ url_for('static', filename='images/uploads/equipment/' + product.picture) }}" class="card-img-top" alt="Equipment Photo">
                         {% else %}
                             <img src="https://via.placeholder.com/200x200" class="card-img-top" alt="Equipment Photo">
                         {% endif %}

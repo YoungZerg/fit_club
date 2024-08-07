@@ -4,7 +4,8 @@ import logging
 from argon2 import PasswordHasher
 from datetime import datetime
 from argon2.exceptions import VerifyMismatchError
-import os
+from dateutil.relativedelta import relativedelta
+from typing import List, Dict
 
 dbname = "fit_club"
 user = "postgres"
@@ -311,7 +312,7 @@ def add_customer_to_class(customer_id, training_session_id):
             logging.info("PostgreSQL connection is closed")
 
 
-'''
+
 def add_new_customer_cart(customer_id):
     try:
         connection = create_connection()
@@ -320,8 +321,8 @@ def add_new_customer_cart(customer_id):
         with connection:
             with connection.cursor() as cursor:
                 cursor.execute("""
-                    INSERT INTO shopping_session (total, created_at, modified_at, customer) VALUES (%i, %s, %s, %i)
-                """, (0, formatted_time, formatted_time, ))
+                    INSERT INTO shopping_session (total, created_at, modified_at, customer) VALUES (%s, %s, %s, %s)
+                """, (0, formatted_time, formatted_time, customer_id))
     except Exception as e:
         logging.error(f"An error occured during cart creation: {e}")
     finally:
@@ -329,5 +330,55 @@ def add_new_customer_cart(customer_id):
         logging.info("PostgreSQL connection is closed")
 
 def add_new_customer_membership(customer_id):
-    return None
-'''
+    try:
+        connection = create_connection()
+        current_time = datetime.now()
+        expire_date = current_time + relativedelta(months=+3)
+        current_formatted_datetime = current_time.strftime("%Y-%m-%d %H:%M:%S")
+        expire_formatted_datetime = expire_date.strftime("%Y-%m-%d %H:%M:%S")
+        with connection:
+            with connection.cursor() as cursor:
+                cursor.execute("""
+                    INSERT INTO membership (start_date, end_date, subscription, customer) VALUES (%s, %s, %s, %s)
+                """, (current_formatted_datetime, expire_formatted_datetime, None, customer_id))
+    except Exception as e:
+        logging.error(f"An error occured during membership creation: {e}")
+    finally:
+        connection.close()
+        logging.info("PostgreSQL connection is closed")
+
+
+def create_new_order(uid, order_total):
+    try:
+        connection = create_connection()
+        current_time = datetime.now()
+        current_formatted_datetime = current_time.strftime("%Y-%m-%d %H:%M:%S")
+        with connection:
+            with connection.cursor() as cursor:
+                cursor.execute("""
+                    INSERT INTO "order" (total, created_at, modified_at, status, customer) VALUES (%s, %s, %s, %s, %s);
+                """, (order_total, current_formatted_datetime, current_formatted_datetime, "Обрабатывается", uid))
+    except Exception as e:
+        logging.error(f"An error occured during order creation: {e}")
+    finally:
+        connection.close()
+        logging.info("PostgreSQL connection is closed")
+
+
+def add_order_items(cart_items: List[Dict[int, int]]):
+    try:
+        connection = create_connection()
+        order_id = fetch_query("SELECT MAX(id) FROM \"order\";")[0][0]
+        current_time = datetime.now()
+        current_formatted_datetime = current_time.strftime("%Y-%m-%d %H:%M:%S")
+        with connection:
+            with connection.cursor() as cursor:
+                for item in cart_items:
+                    cursor.execute("""
+                        INSERT INTO order_items (quantity, created_at, modified_at, "order", equipment) VALUES (%s, %s, %s, %s, %s)
+                    """, (item['item_quantity'], current_formatted_datetime, current_formatted_datetime, order_id, item['equipment_id']))
+    except Exception as e:
+        logging.error(f"An error occured during order items creation: {e}")
+    finally:
+        connection.close()
+        logging.info("PostgreSQL connection is closed")

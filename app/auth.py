@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, redirect, url_for, request, flash, session
-from fit_club.database.db import fetch_query, execute_query, add_new_user, verify_password
+from fit_club.database.db import fetch_query, execute_query, add_new_user, verify_password, add_new_customer_cart, add_new_customer_membership
 from argon2 import PasswordHasher
 
 auth = Blueprint('auth', __name__, static_folder = '../static', template_folder = '../templates')
@@ -48,6 +48,14 @@ def signup():
         hashed_password = ph.hash(password)
 
         add_new_user(email, name, hashed_password, address, birth_date, telephone, postalcode, sex)
+
+        last_added_user_query = "SELECT MAX(id) FROM customer;"
+
+        last_added_user_id = fetch_query(last_added_user_query)[0][0]
+
+        add_new_customer_cart(last_added_user_id)
+        add_new_customer_membership(last_added_user_id)
+
         return redirect(url_for('auth.login'))
 
     return render_template('signup.html')

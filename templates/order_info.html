@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shopping Cart</title>
+    <title>Order Details</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        .cart-item {
+        .order-item {
             margin-bottom: 20px;
             padding: 15px;
             border: 1px solid #dee2e6;
@@ -28,7 +28,7 @@
 <body>
     {% include 'header.html' %}
     <div class="container mt-4">
-        <h1>Shopping Cart</h1>
+        <h1>Order Details</h1>
         {% with messages = get_flashed_messages() %}
             {% if messages %}
                 <div class="alert alert-success" role="alert">
@@ -37,13 +37,22 @@
             {% endif %}
         {% endwith %}
         <div class="row">
-            {% for item in customer_cart_items %}
-            <div class="col-md-4 cart-item">
+            <div class="col-md-12">
+                <h2>Order ID: {{ order_info.order_id }}</h2>
+                <p><strong>Total Price:</strong> ${{ order_info.order_total_price }}</p>
+                <p><strong>Status:</strong> {{ order_info.order_status }}</p>
+            </div>
+        </div>
+        <h3 class="mt-4">Items in this Order:</h3>
+        <div class="row">
+            {% for item in current_order_items %}
+            <div class="col-md-4 order-item">
                 <h5>{{ item.item_name }}</h5>
-                <p>{{ item.item_description }}</p>
-                <p><strong>Price:</strong> ${{ item.item_total_price }}</p>
+                <p><strong>Quantity:</strong> {{ item.item_quantity }}</p>
+                <p><strong>Total Price:</strong> ${{ item.item_total_price }}</p>
+                {% if order_info.order_status == "Обрабатывается" %}
                 <div class="quantity-controls">
-                    <form method="POST" action="{{ url_for('main.update_item_quantity', equipment_id=item.item_id) }}">
+                    <form method="POST" action="{{ url_for('main.update_order_item_quantity', order_id=order_info.order_id, equipment_id=item.item_id) }}">
                         <div class="input-group">
                             <button type="submit" name="action" value="subtract" class="btn btn-outline-secondary">-</button>
                             <input type="text" name="quantity" value="{{ item.item_quantity }}" readonly>
@@ -51,38 +60,11 @@
                         </div>
                     </form>
                 </div>
+                {% endif %}
             </div>
             {% endfor %}
         </div>
-        <button type="button" class="btn btn-primary mt-4" data-bs-toggle="modal" data-bs-target="#orderSummaryModal">
-            View Order Summary
-        </button>
-    </div>
-
-    <!-- Order Summary Modal -->
-    <div class="modal fade" id="orderSummaryModal" tabindex="-1" aria-labelledby="orderSummaryModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="orderSummaryModalLabel">Order Summary</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <p><strong>Total Price:</strong> ${{ total_price }}</p>
-                    <p><strong>Order Details:</strong></p>
-                    <ul>
-                        {% for item in customer_cart_items %}
-                        <li>{{ item.item_name }} - Quantity: {{ item.item_quantity }} - Total Price: ${{ item.item_total_price }}</li>
-                        {% endfor %}
-                    </ul>
-                </div>
-                <div class="modal-footer">
-                    <form method="POST" action="{{url_for('main.make_order')}}">
-                        <button type="submit" class="btn btn-success">Make Order</button>
-                    </form>
-                </div>
-            </div>
-        </div>
+        <a href="{{ url_for('main.user_order_history') }}" class="btn btn-secondary mt-3">Back to Order History</a>
     </div>
     {% include 'footer.html' %}
     <!-- Bootstrap JS -->

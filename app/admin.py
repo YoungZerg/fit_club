@@ -1,6 +1,6 @@
 import os
 from flask import render_template, Blueprint, session, redirect, url_for, request, flash
-from fit_club.database.db import fetch_query, create_new_admin, verify_password, create_new_equipment, add_category, add_class, new_training_session
+from fit_club.database.db import fetch_query, create_new_admin, verify_password, create_new_equipment, add_category, add_class, new_training_session, execute_query
 from argon2 import PasswordHasher
 from fit_club.misc.functions import allowed_file
 from werkzeug.utils import secure_filename
@@ -250,3 +250,128 @@ def add_training_session():
 
 
     return render_template('add_train_session.html', all_classes=all_classes, all_trainers=all_trainers, all_sessions=all_sessions)
+
+@admin.route('/admin-home/customers-orders')
+def view_orders():
+    if 'admin_id' not in session:
+        return redirect(url_for('admin.admin_login'))
+
+    fetch_all_orders_info = """
+    SELECT customer.name,
+           "order".id,
+           "order".total,
+           "order".status
+    FROM "order"
+    INNER JOIN customer
+    ON "order".customer = customer.id;
+    """
+
+    all_orders_raw = fetch_query(fetch_all_orders_info)
+
+    all_orders = []
+
+    for order in all_orders_raw:
+        order_info = {
+            "customer_name": order[0],
+            "order_id": order[1],
+            "order_total": order[2],
+            "order_status": order[3]
+        }
+        all_orders.append(order_info)
+
+    return render_template('view_orders.html', orders=all_orders)
+
+@admin.route('/admin-home/customers-orders/<int:order_id>', methods=["GET", "POST"])
+def order_page(order_id):
+
+    if request.method == "POST":
+        new_order_status = request.form.get("status")
+        update_order_status_query = "UPDATE \"order\" SET status = '%s' WHERE id = %i;" % (new_order_status, order_id)
+        execute_query(update_order_status_query)    
+        return redirect(url_for('admin.order_page', order_id=order_id))
+
+
+    fetch_order_info = """
+    SELECT customer.name,
+           "order".id,
+           "order".total,
+           "order".status
+    FROM "order"
+    INNER JOIN customer
+    ON "order".customer = customer.id
+    WHERE "order".id = %i;
+    """ % order_id
+
+    order_info_raw = fetch_query(fetch_order_info)[0]
+
+    order_info = {
+            "customer_name": order_info_raw[0],
+            "order_id": order_info_raw[1],
+            "order_total": order_info_raw[2],
+            "order_status": order_info_raw[3]
+    }
+
+    fetch_order_items = """
+    SELECT equipment.id,
+           equipment.name,
+           order_items.quantity,
+           equipment.price * order_items.quantity AS total_price
+    FROM order_items
+    INNER JOIN equipment
+    ON order_items.equipment = equipment.id
+    WHERE order_items."order" = %i; 
+    """ % order_id
+
+    order_items_raw = fetch_query(fetch_order_items)
+    
+    order_items = []
+
+    for item in order_items_raw:
+        item_info = {
+            "item_id": item[0],
+            "item_name": item[1],
+            "item_quantity": item[2],
+            "item_total_price": item[3]
+        }
+        order_items.append(item_info)
+
+
+
+    return render_template('admin_order_page.html', order_items=order_items, order_info=order_info)
+
+
+#
+
+@admin.route('/admin-home/customers-orders/<int:order_id>/update-item-quantity/<int:equipment_id>', methods=["POST"])
+def update_order_item_quantity(order_id, equipment_id):
+    
+    action = request.form.get("action")
+    fetch_item_quantity = "SELECT quantity FROM order_items WHERE \"order\" = %i AND equipment = %i;" % (order_id, equipment_id)
+
+    current_item_quantity = fetch_query(fetch_item_quantity)[0][0]
+
+    current_item_price = fetch_query("SELECT price FROM equipment WHERE id = %i;" % equipment_id)[0][0]
+
+    current_order_total = fetch_query("SELECT total FROM \"order\" WHERE id = %i" % order_id)[0][0]
+
+    if action == "add":
+        current_item_quantity += 1
+        new_order_total = "UPDATE \"order\" SET total = %i WHERE id = %i;" % (current_order_total+current_item_price, order_id)
+        execute_query(new_order_total)
+
+    elif action=="subtract":
+        if current_item_quantity == 1:
+            new_order_total = "UPDATE \"order\" SET total = %i WHERE id = %i;" % (current_order_total-current_item_price, order_id)
+            execute_query(new_order_total)
+
+            delete_item_query = "DELETE FROM order_items WHERE \"order\" = %i AND equipment = %i;" % (order_id, equipment_id)
+            execute_query(delete_item_query)
+        else:
+            current_item_quantity -= 1
+            new_order_total = "UPDATE \"order\" SET total = %i WHERE id = %i;" % (current_order_total-current_item_price, order_id)
+            execute_query(new_order_total)
+    
+    update_item_quantity = "UPDATE order_items SET quantity = %i WHERE \"order\"= %i AND equipment = %i" % (current_item_quantity, order_id, equipment_id)
+    execute_query(update_item_quantity)
+
+    return redirect(url_for('admin.order_page', order_id=order_id))
