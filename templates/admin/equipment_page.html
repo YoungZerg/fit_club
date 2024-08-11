@@ -13,28 +13,34 @@
             max-width: 400px;
             height: auto;
         }
+        .main-content {
+            margin-left: 220px;
+            padding: 20px;
+        }
     </style>
 </head>
 <body>
     {%include 'sidebar.html'%}
-    <div class="container mt-4">
-        <h2>{{ equipment.name }}</h2>
-        <div class="row">
-            <div class="col-md-6">
-                {% if equipment.picture %}
-                    <img src="{{ url_for('static', filename='images/uploads/customers/' ~ equipment.picture) }}" class="equipment-img" alt="Equipment Photo">
-                {% else %}
-                    <img src="https://via.placeholder.com/400" class="equipment-img" alt="Equipment Photo">
-                {% endif %}
+    <div class="main-content">
+        <div class="container mt-4">
+            <h2>{{ equipment.name }}</h2>
+            <div class="row">
+                <div class="col-md-6">
+                    {% if equipment.picture %}
+                        <img src="{{ url_for('static', filename='images/uploads/customers/' ~ equipment.picture) }}" class="equipment-img" alt="Equipment Photo">
+                    {% else %}
+                        <img src="https://via.placeholder.com/400" class="equipment-img" alt="Equipment Photo">
+                    {% endif %}
+                </div>
+                <div class="col-md-6">
+                    <h3>Details</h3>
+                    <p><strong>Description:</strong> {{ equipment.description }}</p>
+                    <p><strong>Price:</strong> {{ equipment.price }}р.</p>
+                    <p><strong>Category:</strong> {{ equipment.category }}</p>
+                </div>
             </div>
-            <div class="col-md-6">
-                <h3>Details</h3>
-                <p><strong>Description:</strong> {{ equipment.description }}</p>
-                <p><strong>Price:</strong> {{ equipment.price }}р.</p>
-                <p><strong>Category:</strong> {{ equipment.category }}</p>
-            </div>
+            <a href="{{ url_for('admin.list_all_equipment') }}" class="btn btn-secondary mt-3">Back to Products</a>
         </div>
-        <a href="{{ url_for('admin.list_all_equipment') }}" class="btn btn-secondary mt-3">Back to Products</a>
     </div>
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>

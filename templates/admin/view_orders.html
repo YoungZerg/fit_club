@@ -16,31 +16,38 @@
             background-color: #fff;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
+        .main-content {
+            margin-left: 220px;
+            padding: 20px;
+        }
     </style>
 </head>
 <body>
     {% include 'sidebar.html' %}
-    <div class="container mt-4">
-        <h1>All Orders</h1>
-        
-        <!-- Search Bar -->
-        <form class="d-flex mb-4" action="{{ url_for('admin.search_order') }}" method="GET">
-            <input class="form-control me-2" type="search" placeholder="Search by Customer Name" aria-label="Search" name="search_string" required>
-            <button class="btn btn-outline-success" type="submit">Search</button>
-        </form>
-
-        <div class="row">
-            {% for order in orders %}
-            <div class="col-md-6 order-item">
-                <h5>Customer: {{ order.customer_name }}</h5>
-                <p><strong>Order ID:</strong> {{ order.order_id }}</p>
-                <p><strong>Total Price:</strong> {{ order.order_total }}р.</p>
-                <p><strong>Status:</strong> {{ order.order_status }}</p>
-                <a href="{{ url_for('admin.order_page', order_id=order.order_id) }}" class="btn btn-primary">View Details</a>
+    <div class="main-content">
+        <div class="container mt-4">
+            <h1>All Orders</h1>
+            
+            <!-- Search Bar -->
+            <form class="d-flex mb-4" action="{{ url_for('admin.search_order') }}" method="GET">
+                <input class="form-control me-2" type="search" placeholder="Search by Customer Name" aria-label="Search" name="search_string" required>
+                <button class="btn btn-outline-success" type="submit">Search</button>
+            </form>
+    
+            <div class="row">
+                {% for order in orders %}
+                <div class="col-md-6 order-item">
+                    <h5>Customer: {{ order.customer_name }}</h5>
+                    <p><strong>Order ID:</strong> {{ order.order_id }}</p>
+                    <p><strong>Total Price:</strong> {{ order.order_total }}р.</p>
+                    <p><strong>Status:</strong> {{ order.order_status }}</p>
+                    <a href="{{ url_for('admin.order_page', order_id=order.order_id) }}" class="btn btn-primary">View Details</a>
+                </div>
+                {% endfor %}
             </div>
-            {% endfor %}
         </div>
     </div>
+
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>

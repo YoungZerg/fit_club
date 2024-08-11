@@ -42,6 +42,10 @@
         .modal-content {
             padding: 20px;
         }
+        .main-content {
+            margin-left: 220px;
+            padding: 20px;
+        }
     </style>
 </head>
 <body>
@@ -53,23 +57,26 @@
         </div>
     {% endif %}
     {% endwith %}
-    <div class="container mt-4">
-        <h1>Training Sessions</h1>
-        <img src="{{ url_for('static', filename='images/pen(1).png') }}" alt="Add Training Session" class="pen-icon" data-bs-toggle="modal" data-bs-target="#addSessionModal">
-        <div class="row">
-            {% for training_session in all_sessions %}
-            <div class="col-md-4">
-                <div class="session-card">
-                    <h5>{{ training_session.class_name }}</h5> <!-- Class Name -->
-                    <p><strong>Trainer:</strong> {{ training_session.trainer_name }}</p>
-                    <p><strong>Start Time:</strong> {{ training_session.start_time }}</p>
-                    <p><strong>End Time:</strong> {{ training_session.end_time }}</p>
-                    <p><strong>Room Number:</strong> {{ training_session.room_number }}</p>
+    <div class="main-content">
+        <div class="container mt-4">
+            <h1>Training Sessions</h1>
+            <img src="{{ url_for('static', filename='images/pen(1).png') }}" alt="Add Training Session" class="pen-icon" data-bs-toggle="modal" data-bs-target="#addSessionModal">
+            <div class="row">
+                {% for training_session in all_sessions %}
+                <div class="col-md-4">
+                    <div class="session-card">
+                        <h5>{{ training_session.class_name }}</h5> <!-- Class Name -->
+                        <p><strong>Trainer:</strong> {{ training_session.trainer_name }}</p>
+                        <p><strong>Start Time:</strong> {{ training_session.start_time }}</p>
+                        <p><strong>End Time:</strong> {{ training_session.end_time }}</p>
+                        <p><strong>Room Number:</strong> {{ training_session.room_number }}</p>
+                    </div>
                 </div>
+                {% endfor %}
             </div>
-            {% endfor %}
         </div>
     </div>
+
 
     <!-- Add Training Session Modal -->
     <div class="modal fade" id="addSessionModal" tabindex="-1" aria-labelledby="addSessionModalLabel" aria-hidden="true">

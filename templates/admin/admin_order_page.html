@@ -24,39 +24,45 @@
             text-align: center;
             width: 50px;
         }
+        .main-content {
+            margin-left: 220px;
+            padding: 20px;
+        }
     </style>
 </head>
 <body>
     {% include 'sidebar.html' %}
-
-    <div class="container mt-4">
-        <h1>Order Details</h1>
-        <h3>Customer: {{ order_info.customer_name }}</h3>
-        <h3>Order ID: {{ order_info.order_id }}</h3>
-        <h3>Total: {{ order_info.order_total }}р.</h3>
-        <h3>Status: {{ order_info.order_status }}</h3>
-        <button type="button" class="btn btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#statusModal">
-            Change Order Status
-        </button>
-
-        <div class="row mt-4">
-            {% for item in order_items %}
-            <div class="col-md-4 order-item">
-                <h5>{{ item.item_name }}</h5>
-                <p><strong>Price:</strong> {{ item.item_total_price }}р.</p>
-                <div class="quantity-controls">
-                    <form method="POST" action="{{ url_for('admin.update_order_item_quantity', order_id=order_info.order_id, equipment_id=item.item_id) }}">
-                        <div class="input-group">
-                            <button type="submit" name="action" value="subtract" class="btn btn-outline-secondary">-</button>
-                            <input type="text" name="quantity" value="{{ item.item_quantity }}" readonly>
-                            <button type="submit" name="action" value="add" class="btn btn-outline-secondary">+</button>
-                        </div>
-                    </form>
+    <div class="main-content">
+        <div class="container mt-4">
+            <h1>Order Details</h1>
+            <h3>Customer: {{ order_info.customer_name }}</h3>
+            <h3>Order ID: {{ order_info.order_id }}</h3>
+            <h3>Total: {{ order_info.order_total }}р.</h3>
+            <h3>Status: {{ order_info.order_status }}</h3>
+            <button type="button" class="btn btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#statusModal">
+                Change Order Status
+            </button>
+    
+            <div class="row mt-4">
+                {% for item in order_items %}
+                <div class="col-md-4 order-item">
+                    <h5>{{ item.item_name }}</h5>
+                    <p><strong>Price:</strong> {{ item.item_total_price }}р.</p>
+                    <div class="quantity-controls">
+                        <form method="POST" action="{{ url_for('admin.update_order_item_quantity', order_id=order_info.order_id, equipment_id=item.item_id) }}">
+                            <div class="input-group">
+                                <button type="submit" name="action" value="subtract" class="btn btn-outline-secondary">-</button>
+                                <input type="text" name="quantity" value="{{ item.item_quantity }}" readonly>
+                                <button type="submit" name="action" value="add" class="btn btn-outline-secondary">+</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
+                {% endfor %}
             </div>
-            {% endfor %}
         </div>
     </div>
+
 
     <!-- Status Modal -->
     <div class="modal fade" id="statusModal" tabindex="-1" aria-labelledby="statusModalLabel" aria-hidden="true">
