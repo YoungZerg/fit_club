@@ -13,12 +13,47 @@
                 height: 200px;
                 object-fit: cover;
             }
+            .categories-section {
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            }
+            .category-badge {
+                padding: 10px 20px;
+                border-radius: 50px;
+                background-color: #e9ecef;
+                color: #343a40;
+                text-decoration: none;
+                transition: background-color 0.3s, color 0.3s;
+            }
+            .category-badge:hover {
+                background-color: #495057;
+                color: white;
+            }
         </style>
     </head>
     <body>
         {%include 'header.html'%}
         <div class="container mt-4">
             <h2>All Products</h2>
+
+            <div class="categories-section">
+                <a href="{{ url_for('main.shop_page') }}" class="category-badge">
+                    All products
+                </a>
+                {% for category in categories %}
+                    <a href="{{ url_for('main.filter_by_category', category_id=category.id) }}" class="category-badge">
+                        {{ category.name }}
+                    </a>
+                {% endfor %}
+            </div>
+
+            <form class="d-flex mb-4" action="{{ url_for('main.search_equipment') }}" method="GET">
+                <input class="form-control me-2" type="search" placeholder="Search by Product Name" aria-label="Search" name="search_string" required>
+                <button class="btn btn-outline-success" type="submit">Search</button>
+            </form>
+
             <div class="row">
                 {% for product in equipment_list %}
                     <div class="col-md-4 mb-4">

@@ -375,3 +375,73 @@ def update_order_item_quantity(order_id, equipment_id):
     execute_query(update_item_quantity)
 
     return redirect(url_for('admin.order_page', order_id=order_id))
+
+@admin.route('/admin-home/customers-orders/search/', methods=["GET"])
+def search_order():
+
+    search_string = request.args.get('search_string', '')
+
+    if not search_string:
+        return redirect(url_for('admin.view_orders'))
+
+    fetch_all_customer_orders = """
+    SELECT customer.name,
+           "order".id,
+           "order".total,
+           "order".status
+    FROM "order"
+    INNER JOIN customer
+    ON "order".customer = customer.id
+    WHERE regexp_like(customer.name, '%s', 'i');  
+    """ % search_string
+
+    all_orders_raw = fetch_query(fetch_all_customer_orders)
+
+    all_orders = []
+
+    for order in all_orders_raw:
+        order_info = {
+            "customer_name": order[0],
+            "order_id": order[1],
+            "order_total": order[2],
+            "order_status": order[3]
+        }
+        all_orders.append(order_info)
+
+
+    return render_template('order_search.html', orders=all_orders)
+
+
+@admin.route('/admin-home/list-equipment/search', methods=["GET"])
+def search_equipment():
+    search_string = request.args.get('search_string', '')
+
+    if not search_string:
+        return redirect(url_for('admin.list_all_equipment'))
+
+    fetch_all_equipment = """
+    SELECT equipment.id, equipment.name,
+           equipment.price, category.name,
+           equipment.equipment_pic_path
+    FROM equipment
+    INNER JOIN category
+    ON equipment.category = category.id
+    WHERE regexp_like(equipment.name, '%s', 'i');  
+    """ % search_string
+
+
+    equipments = fetch_query(fetch_all_equipment)
+    equipment_list = []
+    for product in equipments:
+        product_info = {
+            "id": product[0],
+            "name": product[1],
+            "price": product[2],
+            "category": product[3],
+            "picture": product[4]
+        }
+        equipment_list.append(product_info)
+
+
+
+    return render_template('equipment_search.html', equipment_list=equipment_list)

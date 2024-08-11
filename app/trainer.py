@@ -48,7 +48,8 @@ def trainer_schedule():
     FROM training_session
     INNER JOIN class
     ON training_session.class = class.id
-    WHERE training_session.trainer = %i;
+    WHERE training_session.trainer = %i
+    ORDER BY training_session.start_time;
     """ % current_trainer
 
     trainer_name = fetch_query(trainer_name_query)[0][0]
@@ -217,8 +218,7 @@ def trainer_login():
             flash("Please check your login details and try again.")
             return redirect(url_for('trainer.trainer_login'))
         
-        session['trainer_id'] = result[0][0]
-        print(session)
+        session['trainer_id'] = result[0][0]    
         return redirect(url_for('trainer.trainer_home'))
         
 

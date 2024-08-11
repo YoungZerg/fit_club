@@ -15,11 +15,11 @@ def home():
     if 'customer_id' in session:
         user = session['customer_id']
 
-        user_name_query = "SELECT name FROM customer WHERE id = %i;" % user
+        user_name_query = "SELECT name, profile_pic_path FROM customer WHERE id = %i;" % user
 
-        username = fetch_query(user_name_query)[0][0]
+        username, profile_picture = fetch_query(user_name_query)[0]
 
-        return render_template('index.html', username=username)
+        return render_template('index.html', username=username, profile_picture=profile_picture)
     return render_template('index.html')
 
 @main.route('/profile')
@@ -172,7 +172,64 @@ def shop_page():
         equipment_list.append(product_info)
 
 
-    return render_template('equipment.html', equipment_list=equipment_list)
+    fetch_all_categories = "SELECT id, name FROM category;"
+
+    categories_raw = fetch_query(fetch_all_categories)
+
+    categories = []
+
+    for category in categories_raw:
+        category_info = {
+            "id": category[0],
+            "name": category[1]
+        }
+        categories.append(category_info)
+
+    
+    return render_template('equipment.html', equipment_list=equipment_list, categories=categories)
+
+#{{ url_for('main.filter_by_category', category_id=category.id) }}
+
+@main.route('/equipment/filter-by-category/<int:category_id>')
+def filter_by_category(category_id):
+
+    fetch_items = """
+    SELECT equipment.id, 
+           equipment.name,
+           equipment.price,
+           equipment.equipment_pic_path
+    FROM equipment
+    INNER JOIN category
+    ON equipment.category = category.id
+    WHERE equipment.category =  %i;
+    """ % category_id
+
+    equipments = fetch_query(fetch_items)
+    equipment_list = []
+    for product in equipments:
+        product_info = {
+            "id": product[0],
+            "name": product[1],
+            "price": product[2],
+            "picture": product[3]
+        }
+        equipment_list.append(product_info)
+
+    fetch_all_categories = "SELECT id, name FROM category;"
+
+    categories_raw = fetch_query(fetch_all_categories)
+
+    categories = []
+
+    for category in categories_raw:
+        category_info = {
+            "id": category[0],
+            "name": category[1]
+        }
+        categories.append(category_info)
+
+    
+    return render_template('equipment.html', equipment_list=equipment_list, categories=categories)
 
 @main.route('/equipment/<int:product_id>')
 def product_details(product_id):
@@ -492,6 +549,87 @@ def update_order_item_quantity(order_id, equipment_id):
     execute_query(update_order_item_time)
     return redirect(url_for('main.render_order_info', order_id=order_id))
 
+
+@main.route('/equipment/search', methods=["GET"])
+def search_equipment():
+
+    search_string = request.args.get('search_string', '')
+
+    if not search_string:
+        return redirect(url_for('main.shop_page'))
+
+    fetch_all_equipment = """
+        SELECT equipment.id, 
+               equipment.name,
+               equipment.price,
+               equipment.equipment_pic_path
+        FROM equipment
+        INNER JOIN category
+        ON equipment.category = category.id
+        WHERE regexp_like(equipment.name, '%s', 'i');  
+        """ % search_string
+    
+    equipments = fetch_query(fetch_all_equipment)
+    equipment_list = []
+    for product in equipments:
+        product_info = {
+            "id": product[0],
+            "name": product[1],
+            "price": product[2],
+            "picture": product[3]
+        }
+        equipment_list.append(product_info)
+
+    return render_template('search_equipment.html', equipment_list=equipment_list)
+
+
+@main.route('/profile/training-history')
+def training_history():
+
+    current_user = session['customer_id']
+
+    current_time = datetime.now()
+
+    current_user_training_sessions_query = """
+    SELECT 
+           training_session.start_time,
+           training_session.end_time,
+           training_session.room_number,
+           class.name,
+           trainer.name
+    FROM training_session
+    INNER JOIN class ON training_session.class = class.id
+    INNER JOIN trainer ON training_session.trainer = trainer.id
+    WHERE training_session.id IN  (SELECT training_session from cust_train_session WHERE customer = %i)
+    ORDER BY training_session.start_time;
+    """ % current_user
+
+    current_user_training_sessions_query = fetch_query(current_user_training_sessions_query)
+
+    past_training_sessions = []
+
+    upcoming_training_sessions = []
+
+    for class_session in current_user_training_sessions_query:
+        class_session_info = {
+            "start_time": class_session[0],
+            "end_time": class_session[1],
+            "room_number": class_session[2],
+            "class_name": class_session[3],
+            "trainer_name": class_session[4],
+        }
+        
+        if class_session_info['start_time'] <= current_time:
+            past_training_sessions.append(class_session_info)
+        else:
+            upcoming_training_sessions.append(class_session_info)
+
+    return render_template('training_history.html', upcoming_sessions=upcoming_training_sessions, past_sessions=past_training_sessions)
+
 @main.route('/plans')
 def training_plans():
-    return render_template('plans.html')
+    return render_template('plans.html') 
+
+@main.route('/partnership')
+def partnership():
+    return render_template('partnership.html')

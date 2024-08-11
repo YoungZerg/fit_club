@@ -27,19 +27,16 @@
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav">
                         <li class="nav-item">
-                            <a class="nav-link" href="/equipment">Инвентарь</a>
+                            <a class="nav-link" href="/equipment">Товары</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="/plans">Планы</a>
+                            <a class="nav-link" href="/plans">Тренировочные планы</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="/partnership">Работа</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('main.all_classes') }}">Занятия</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('main.user_order_history') }}">Заказы</a>
+                            <a class="nav-link" href="{{ url_for('main.all_classes') }}">Тренировочные занятия</a>
                         </li>
                     </ul>
                     <ul class="navbar-nav mb-2 mb-lg-0 ms-auto">
@@ -48,10 +45,16 @@
                                 <img src="{{ url_for('static', filename='images/shopping_cart.jpg') }}" class="header-img" alt="Shopping Cart">
                             </a>
                         </li>
-                        {% if session['customer_id'] %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="/profile">Hello, {{ username }}!</a>
+                        <li class="nav-item">   
+                            <a class="nav-link" href="/profile">
+                                {% if session['profile_picture'] %}
+                                    <img src="{{ url_for('static', filename='images/uploads/customers/' + session['profile_picture']) }}" class="header-img" alt="Profile Picture">
+                                {% else %}
+                                    <img src="{{ url_for('static', filename='images/default_pfp.jpg') }}" class="header-img" alt="Profile Picture">
+                                {% endif %}
+                            </a>
                         </li>
+                        {% if session['customer_id'] %}
                         <li class="nav-item">
                             <a class="nav-link" href="/logout">Logout</a>
                         </li>
@@ -60,11 +63,6 @@
                             <a class="nav-link" href="/signup">Login/Register</a>
                         </li>
                         {% endif %}
-                        <li class="nav-item">   
-                            <a class="nav-link" href="#">
-                                <img src="https://via.placeholder.com/360x360" class="header-img" alt="Placeholder Image">
-                            </a>
-                        </li>
                     </ul>
                 </div>
             </div>

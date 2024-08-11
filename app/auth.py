@@ -12,15 +12,16 @@ def login():
         email = request.form.get("email")
         password = request.form.get("password")
 
-        fetch_user = "SELECT id, password_hash FROM customer WHERE email = '%s';" % email
+        fetch_user = "SELECT id, profile_pic_path, password_hash FROM customer WHERE email = '%s';" % email
 
         user = fetch_query(fetch_user)
 
-        if (len(user) == 0) or (len(user) != 0 and not verify_password(user[0][1], password)):
+        if (len(user) == 0) or (len(user) != 0 and not verify_password(user[0][2], password)):
             flash('Please check your login details and try again.')
             return redirect(url_for('auth.login'))
         
         session['customer_id'] = user[0][0]
+        session['profile_picture'] = user[0][1]
         return redirect(url_for('main.home'))
     
     return render_template('login.html')

@@ -41,7 +41,7 @@
             <div class="col-md-4 cart-item">
                 <h5>{{ item.item_name }}</h5>
                 <p>{{ item.item_description }}</p>
-                <p><strong>Price:</strong> ${{ item.item_total_price }}</p>
+                <p><strong>Price:</strong> {{ item.item_total_price }}р.</p>
                 <div class="quantity-controls">
                     <form method="POST" action="{{ url_for('main.update_item_quantity', equipment_id=item.item_id) }}">
                         <div class="input-group">
@@ -68,11 +68,11 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <p><strong>Total Price:</strong> ${{ total_price }}</p>
+                    <p><strong>Total Price:</strong> {{ total_price }}р.</p>
                     <p><strong>Order Details:</strong></p>
                     <ul>
                         {% for item in customer_cart_items %}
-                        <li>{{ item.item_name }} - Quantity: {{ item.item_quantity }} - Total Price: ${{ item.item_total_price }}</li>
+                        <li>{{ item.item_name }} - Quantity: {{ item.item_quantity }} - Total Price: {{ item.item_total_price }}р.</li>
                         {% endfor %}
                     </ul>
                 </div>

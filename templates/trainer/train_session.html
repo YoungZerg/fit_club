@@ -21,23 +21,19 @@
         .session-header h1 {
             margin: 0;
         }
-        .main-page-link {
+        .main-page-link, .back-to-schedule-link {
             position: absolute;
             top: 50%;
-            left: 20px;
             transform: translateY(-50%);
             color: white;
             text-decoration: none;
             font-weight: bold;
         }
+        .main-page-link {
+            left: 20px;
+        }
         .back-to-schedule-link {
-            position: absolute;
-            top: 50%;
             right: 20px;
-            transform: translateY(-50%);
-            color: white;
-            text-decoration: none;
-            font-weight: bold;
         }
         .session-section {
             padding: 20px;
@@ -47,7 +43,38 @@
             background: white;
             border: 1px solid #dee2e6;
             border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .participants-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        .participant-card {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            padding: 20px;
+        }
+        .participant-card img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 10px;
+        }
+        .participant-card h3 {
+            font-size: 16px;
+            margin: 10px 0 0 0;
+            color: #343a40;
+        }
+        .no-participants {
+            text-align: center;
+            font-size: 18px;
+            color: #6c757d;
         }
     </style>
 </head>
@@ -62,16 +89,25 @@
             <p><strong>Notes:</strong> {{ train_session_details.class_name }}</p>
             <p><strong>Start Time:</strong> {{ train_session_details.start_time }}</p>
             <p><strong>End Time:</strong> {{ train_session_details.end_time }}</p>
-            <p><strong>Room:</strong>Number {{ train_session_details.room_number }}</p>
+            <p><strong>Room:</strong> Number {{ train_session_details.room_number }}</p>
         </div>
-        <div class="participants-card">
-            {%if participants_list|length > 0%}
-                {%for participant in participants_list%}
-                    <h3>{{participant.name}}</h3>
-                {%endfor%}
-            {%else%}
-                <h2>No clients so far</h2>
-            {%endif%}
+        <div class="participants-list">
+            {% if participants_list|length > 0 %}
+                {% for participant in participants_list %}
+                    <div class="participant-card">
+                        {% if participant.pfp_name %}
+                            <img src="{{ url_for('static', filename='images/uploads/customers/' + participant.pfp_name) }}" alt="{{ participant.name }}">
+                        {% else %}
+                            <img src="{{ url_for('static', filename='images/default_pfp.jpg') }}" alt="{{ participant.name }}">
+                        {% endif %}
+                        <h3>{{ participant.name }}</h3>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="no-participants">
+                    <h2>No clients so far</h2>
+                </div>
+            {% endif %}
         </div>
     </div>
 

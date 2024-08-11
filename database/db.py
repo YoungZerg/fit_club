@@ -3,7 +3,7 @@ from psycopg2 import OperationalError
 import logging
 from argon2 import PasswordHasher
 from datetime import datetime
-from argon2.exceptions import VerifyMismatchError
+from argon2.exceptions import VerifyMismatchError, InvalidHashError
 from dateutil.relativedelta import relativedelta
 from typing import List, Dict
 
@@ -20,7 +20,7 @@ ph = PasswordHasher()
 def verify_password(hash, password):
     try:
         return ph.verify(hash, password)
-    except VerifyMismatchError:
+    except (VerifyMismatchError, InvalidHashError):
         return False
 
 
@@ -382,3 +382,5 @@ def add_order_items(cart_items: List[Dict[int, int]]):
     finally:
         connection.close()
         logging.info("PostgreSQL connection is closed")
+
+
