@@ -4,7 +4,7 @@ from fit_club.database.db import fetch_query, create_new_admin, verify_password,
 from argon2 import PasswordHasher
 from fit_club.misc.functions import allowed_file
 from werkzeug.utils import secure_filename
-
+from datetime import datetime
 
 UPLOAD_EQUIPMENT_DIR = os.path.join('\\'.join(os.path.dirname(os.path.abspath(__file__)).split('\\')[:-1]), r'static\images\uploads\equipment')
 
@@ -409,7 +409,7 @@ def search_order():
         all_orders.append(order_info)
 
 
-    return render_template('order_search.html', orders=all_orders)
+    return render_template('view_orders.html', orders=all_orders)
 
 
 @admin.route('/admin-home/list-equipment/search', methods=["GET"])
@@ -444,4 +444,92 @@ def search_equipment():
 
 
 
-    return render_template('equipment_search.html', equipment_list=equipment_list)
+    return render_template('all_equipment.html', equipment_list=equipment_list)
+
+
+@admin.route('/admin-home/customers')
+def render_customers():
+
+    fetch_all_customers = "SELECT id, name, profile_pic_path FROM customer;"
+
+    all_customers_raw = fetch_query(fetch_all_customers)
+
+    all_customers = []
+
+    for customer in all_customers_raw:
+        customer_info = {
+            "user_id": customer[0],
+            "name": customer[1],
+            "profile_picture": customer[2]
+        }
+        all_customers.append(customer_info)
+
+    return render_template('admin_customers.html', users=all_customers)
+
+
+@admin.route('/admin-home/customers/<int:user_id>', methods=["GET", "POST"])
+def manage_user_subscription(user_id):
+
+    if request.method == "POST":
+
+        if 'change_plan' in request.form:
+            selected_plan_id = request.form.get('subscription_plan')
+
+            update_current_customer_plan = """
+            UPDATE membership
+            SET subscription = %i
+            WHERE customer = %i;
+            """ % (int(selected_plan_id), user_id)
+
+            execute_query(update_current_customer_plan)
+
+            return redirect(url_for('admin.manage_user_subscription', user_id=user_id))
+
+        elif 'add_new_plan' in request.form:
+            selected_plan_id = request.form.get('subscription_plan')
+            start_datetime = request.form.get('start_datetime')
+            end_datetime = request.form.get('end_datetime')
+
+            update_current_customer_plan = """
+            UPDATE membership
+            SET start_date = '%s', end_date = '%s', subscription = %i
+            WHERE customer = %i;
+            """ % (start_datetime, end_datetime, int(selected_plan_id), user_id)
+
+            execute_query(update_current_customer_plan)
+
+            return redirect(url_for('admin.manage_user_subscription', user_id=user_id))
+
+
+    fetch_user_info = """
+    SELECT customer.name,
+           customer.profile_pic_path,
+           membership.subscription
+    FROM membership
+    INNER JOIN customer ON customer.id = membership.customer
+    WHERE customer.id = %i;
+    """ % user_id
+
+    user_info_raw = fetch_query(fetch_user_info)[0]
+
+    user_info = {
+        "id": user_id,
+        "name": user_info_raw[0],
+        "profile_picture": user_info_raw[1],
+        "current_plan_id": user_info_raw[2]
+    }
+
+    fetch_all_plans = "SELECT id, plan_name FROM subscription;"
+
+    all_plans_raw = fetch_query(fetch_all_plans)
+
+    all_plans = []
+
+    for plan in all_plans_raw:
+        plan_info = {
+            "plan_id": plan[0],
+            "plan_name": plan[1]
+        }
+        all_plans.append(plan_info)
+
+    return render_template('admin_user_subscription.html', user=user_info, plans=all_plans)

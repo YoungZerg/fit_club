@@ -27,7 +27,21 @@ def user_page():
     if 'customer_id' in session:
         user = session['customer_id']
 
-        user_info_query = "SELECT name, email, tel_number, birth_date, address, postal_code, sex, profile_pic_path FROM customer WHERE id = %i;" % user
+        user_info_query = """
+        SELECT
+               customer.name,
+               customer.email,
+               customer.tel_number,
+               customer.birth_date,
+               customer.address,
+               customer.postal_code,
+               customer.sex,
+               customer.profile_pic_path,
+               membership.end_date
+        FROM membership
+        INNER JOIN customer ON membership.customer = customer.id
+        WHERE customer.id = %i;
+        """ % user
 
         fetched_user_info = fetch_query(user_info_query)[0]
 
@@ -38,9 +52,27 @@ def user_page():
                      "address": fetched_user_info[4],
                      "postal_code": fetched_user_info[5],
                      "sex": fetched_user_info[6],
-                     "profile_pic_path": fetched_user_info[7]}
+                     "profile_pic_path": fetched_user_info[7],
+                     "expiration_date": fetched_user_info[8]}
         
-        return render_template('profile.html', user_info=user_info) 
+        is_customer_plan_null_query = "SELECT subscription FROM membership WHERE customer = %i;" % user
+
+        customer_plan = fetch_query(is_customer_plan_null_query)[0][0]
+
+        current_plan_name = ""
+
+        if not customer_plan:
+            current_plan_name = "Тариф отсутствует"
+        else:
+            fetch_current_plan_name = """
+            SELECT subscription.plan_name
+            FROM membership
+            INNER JOIN subscription ON membership.subscription = subscription.id
+            WHERE membership.customer = %i;
+            """ % user
+            current_plan_name = fetch_query(fetch_current_plan_name)[0][0]
+
+        return render_template('profile.html', user_info=user_info, plan_name=current_plan_name) 
 
     return redirect(url_for('auth.signup'))
 
@@ -580,7 +612,21 @@ def search_equipment():
         }
         equipment_list.append(product_info)
 
-    return render_template('search_equipment.html', equipment_list=equipment_list)
+    fetch_all_categories = "SELECT id, name FROM category;"
+
+    categories_raw = fetch_query(fetch_all_categories)
+
+    categories = []
+
+    for category in categories_raw:
+        category_info = {
+            "id": category[0],
+            "name": category[1]
+        }
+        categories.append(category_info)
+
+
+    return render_template('equipment.html', equipment_list=equipment_list, categories=categories)
 
 
 @main.route('/profile/training-history')
@@ -627,8 +673,23 @@ def training_history():
     return render_template('training_history.html', upcoming_sessions=upcoming_training_sessions, past_sessions=past_training_sessions)
 
 @main.route('/plans')
-def training_plans():
-    return render_template('plans.html') 
+def customer_training_plans():
+
+    fetch_plans = "SELECT plan_name, description, price FROM subscription;"
+
+    all_plans_raw = fetch_query(fetch_plans)
+
+    all_plans = []
+
+    for plan in all_plans_raw:
+        plan_info = {
+            "name": plan[0],
+            "description": plan[1],
+            "price": plan[2]
+        }
+        all_plans.append(plan_info)
+
+    return render_template('plans.html', training_plans=all_plans) 
 
 @main.route('/partnership')
 def partnership():

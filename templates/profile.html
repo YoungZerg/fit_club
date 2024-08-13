@@ -54,12 +54,18 @@
             </div>
             <div class="col-md-8">
                 <h2>{{ user_info.name }}</h2>
-                <p><strong>Email:</strong> {{ user_info.email }}</p>
-                <p><strong>Telephone Number:</strong> {{ user_info.telephone }}</p>
-                <p><strong>Birth Date:</strong> {{ user_info.birth_date }}</p>
-                <p><strong>Address:</strong> {{ user_info.address }}</p>
-                <p><strong>Postal Code:</strong> {{ user_info.postal_code }}</p>
-                <p><strong>Sex:</strong> {{ user_info.sex }}</p>
+                <p><strong>Почта:</strong> {{ user_info.email }}</p>
+                <p><strong>Номер телефона:</strong> {{ user_info.telephone }}</p>
+                <p><strong>Дата рождения:</strong> {{ user_info.birth_date }}</p>
+                <p><strong>Адрес проживания:</strong> {{ user_info.address }}</p>
+                <p><strong>Почтовый индекс:</strong> {{ user_info.postal_code }}</p>
+                <p><strong>Пол:</strong> {{ user_info.sex }}</p>
+                <p><strong>Текущий тренировочный тариф:</strong>{{plan_name}}</p>
+                {%if user_info.expiration_date is none%}
+                <p><strong>Дата окончания тарифа:</strong></p>
+                {%else%}
+                <p><strong>Дата окончания тарифа:</strong>{{user_info.expiration_date}}</p>
+                {%endif%}
             </div>
         </div>
     </div>
