@@ -17,18 +17,9 @@ UPLOAD_TRAINER_DIR = os.path.join('\\'.join(os.path.dirname(os.path.abspath(__fi
 def trainer_home():
     if 'trainer_id' in session:
         
-        trainer_info_query = "SELECT * FROM trainer WHERE id = %i" % session['trainer_id']
+        trainer_info_query = "SELECT * FROM trainer WHERE id = %s"
 
-        #trainer_sessions_query = "SELECT"
-
-        trainer_info = fetch_query(trainer_info_query)
-
-        
-
-        #trainer = {
-        #    "name": result[0],
-        #    "email": 
-        #}
+        trainer_info = fetch_query(trainer_info_query, (session['trainer_id'],))
 
         return render_template('trainer_main.html', trainer_name=trainer_info[0][1])
     return redirect(url_for('trainer.trainer_login'))
@@ -38,7 +29,7 @@ def trainer_home():
 def trainer_schedule():
     current_trainer = session['trainer_id']
     
-    trainer_name_query = "SELECT name FROM trainer WHERE id = %i;" % current_trainer
+    trainer_name_query = "SELECT name FROM trainer WHERE id = %s;"
     
     trainer_sessions_query = """
     SELECT training_session.id,
@@ -48,13 +39,13 @@ def trainer_schedule():
     FROM training_session
     INNER JOIN class
     ON training_session.class = class.id
-    WHERE training_session.trainer = %i
+    WHERE training_session.trainer = %s
     ORDER BY training_session.start_time;
-    """ % current_trainer
+    """
 
-    trainer_name = fetch_query(trainer_name_query)[0][0]
+    trainer_name = fetch_query(trainer_name_query, (current_trainer,))[0][0]
     
-    trainer_sessions_result = fetch_query(trainer_sessions_query)
+    trainer_sessions_result = fetch_query(trainer_sessions_query, (current_trainer,))
 
     trainer_schedule = []
 
@@ -81,8 +72,8 @@ def session_details(session_id):
     FROM training_session
     INNER JOIN class
     ON training_session.class = class.id
-    WHERE training_session.id = %i;
-    """ % session_id
+    WHERE training_session.id = %s;
+    """
 
     training_session_participants_query = """
     SELECT customer.name,
@@ -90,11 +81,11 @@ def session_details(session_id):
     FROM cust_train_session
     INNER JOIN training_session ON cust_train_session.training_session = training_session.id
     INNER JOIN customer ON  cust_train_session.customer = customer.id
-    WHERE training_session.id = %i;
-    """ % session_id
+    WHERE training_session.id = %s;
+    """
 
-    session_details_result = fetch_query(session_details_query)
-    training_session_participants_result = fetch_query(training_session_participants_query)
+    session_details_result = fetch_query(session_details_query, (session_id,))
+    training_session_participants_result = fetch_query(training_session_participants_query, (session_id,))
 
     train_session_details = {
         "start_time": session_details_result[0][0],
@@ -149,13 +140,13 @@ def update_trainer_profile():
 @trainer.route('/trainer-profile/upload-cert', methods=["POST"])
 def upload_certificate():
     if 'certificate' not in request.files:
-        flash("No file part")
+        flash("Файл не выбран.")
         return redirect(url_for('trainer.upload_certificate'))
     
     certificate = request.files['certificate']
 
     if certificate.filename == '':
-        flash("No file part")
+        flash("Файл не выбран.")
         return redirect(url_for('trainer.upload_certificate'))
     
     current_trainer = session['trainer_id']
@@ -175,14 +166,12 @@ def trainer_profile_render():
     
     current_trainer = session['trainer_id']
 
-    print(session)
-
-    trainer_info_query = "SELECT name, email, sex, birth_date, tel_number, profile_pic_path FROM trainer WHERE id = %i;" % current_trainer
+    trainer_info_query = "SELECT name, email, sex, birth_date, tel_number, profile_pic_path FROM trainer WHERE id = %s;"
     
-    trainer_certificates_query = "SELECT cert_path FROM train_cert WHERE trainer = %i;" % current_trainer 
+    trainer_certificates_query = "SELECT cert_path FROM train_cert WHERE trainer = %s;"
 
-    trainer_result = fetch_query(trainer_info_query)
-    certificates_result = fetch_query(trainer_certificates_query)
+    trainer_result = fetch_query(trainer_info_query, (current_trainer,))
+    certificates_result = fetch_query(trainer_certificates_query, (current_trainer,))
 
     trainer_info = {
         "trainer_name": trainer_result[0][0],
@@ -210,12 +199,12 @@ def trainer_login():
         email = request.form.get("email")
         password = request.form.get("password")
 
-        trainer_info_query = "SELECT id, password_hash FROM trainer WHERE email = '%s';" % email
+        trainer_info_query = "SELECT id, password_hash FROM trainer WHERE email = %s;"
 
-        result = fetch_query(trainer_info_query)
+        result = fetch_query(trainer_info_query, (email,))
 
         if (len(result) == 0) or (len(result) != 0 and not verify_password(result[0][1], password)):
-            flash("Please check your login details and try again.")
+            flash("Пожалуйста, проверьте введенные данные и попытайтесь войти снова.")
             return redirect(url_for('trainer.trainer_login'))
         
         session['trainer_id'] = result[0][0]    
@@ -236,12 +225,18 @@ def trainer_register():
         tel_number = request.form.get("telephone")
         birth_date = request.form.get("birth_date")
 
-        is_trainer_exists_query = "SELECT exists (SELECT 1 FROM trainer WHERE email = '%s' LIMIT 1);" % email
+        params_list = [email, name, password, birth_date, tel_number, sex]
 
-        result = fetch_query(is_trainer_exists_query)[0][0]
+        if any(param is None for param in params_list):
+            flash("Пожалуйста, заполните все поля.")
+            return redirect(url_for('trainer.trainer_register'))
+
+        is_trainer_exists_query = "SELECT exists (SELECT 1 FROM trainer WHERE email = %s LIMIT 1);"
+
+        result = fetch_query(is_trainer_exists_query, (email,))[0][0]
 
         if result:
-            flash("Trainer already exists.")
+            flash("Тренер с такой почтой уже существует.")
             return redirect(url_for('trainer.trainer_register'))
 
         hashed_password = ph.hash(password)

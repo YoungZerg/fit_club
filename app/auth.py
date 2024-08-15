@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, redirect, url_for, request, flash, session
-from fit_club.database.db import fetch_query, execute_query, add_new_user, verify_password, add_new_customer_cart, add_new_customer_membership
+from fit_club.database.db import fetch_query, add_new_user, verify_password, add_new_customer_cart, add_new_customer_membership
 from argon2 import PasswordHasher
 
 auth = Blueprint('auth', __name__, static_folder = '../static', template_folder = '../templates')
@@ -12,12 +12,12 @@ def login():
         email = request.form.get("email")
         password = request.form.get("password")
 
-        fetch_user = "SELECT id, profile_pic_path, password_hash FROM customer WHERE email = '%s';" % email
+        fetch_user = "SELECT id, profile_pic_path, password_hash FROM customer WHERE email = %s;"
 
-        user = fetch_query(fetch_user)
+        user = fetch_query(fetch_user, (email,))
 
         if (len(user) == 0) or (len(user) != 0 and not verify_password(user[0][2], password)):
-            flash('Please check your login details and try again.')
+            flash('Пожалуйста, проверьте введенные данные и попытайтесь войти снова.')
             return redirect(url_for('auth.login'))
         
         session['customer_id'] = user[0][0]
@@ -38,12 +38,18 @@ def signup():
         postalcode = request.form['postalcode']
         sex = request.form['sex']
 
-        fetch_user_query = "SELECT exists (SELECT 1 FROM customer WHERE email = '%s' LIMIT 1);" % email
+        params_list = [email, name, password, address, birth_date, telephone, postalcode, sex]
 
-        result = fetch_query(fetch_user_query)[0][0]
+        if any(param is None for param in params_list):
+            flash("Пожалуйста, заполните все поля.")
+            return redirect(url_for('auth.signup'))
+
+        fetch_user_query = "SELECT exists (SELECT 1 FROM customer WHERE email = %s LIMIT 1);"
+
+        result = fetch_query(fetch_user_query, (email,))[0][0]
 
         if result:
-            flash('Email address already exists')
+            flash('Пользователь с такой почтой уже существует.')
             return redirect(url_for('auth.signup'))
     
         hashed_password = ph.hash(password)

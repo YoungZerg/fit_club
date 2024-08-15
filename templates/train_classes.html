@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Available Training Classes</title>
+    <title>Тренировочные занятие</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
@@ -46,18 +46,18 @@
     {% endif %}
     {% endwith %}
     <div class="container mt-4">
-        <h1 class="text-center mb-4">Available Training Classes</h1>
+        <h1 class="text-center mb-4">Тренировочные занятие</h1>
         <div class="row">
             {% for training_session in all_class_sessions %}
             <div class="col-md-4">
                 <div class="card">
                     <div class="card-body">
                         <h5 class="card-title">{{ training_session.class_name }}</h5>
-                        <p class="card-text"><strong>Trainer:</strong> {{ training_session.trainer_name }}</p>
-                        <p class="card-text"><strong>Start Time:</strong> {{ training_session.start_time }}</p>
-                        <p class="card-text"><strong>End Time:</strong> {{ training_session.end_time }}</p>
-                        <p class="card-text"><strong>Room Number:</strong> {{ training_session.room_number }}</p>
-                        <a href="{{ url_for('main.apply_class', session_id=training_session.session_id) }}" class="btn btn-success">Apply</a>
+                        <p class="card-text"><strong>Тренер:</strong> {{ training_session.trainer_name }}</p>
+                        <p class="card-text"><strong>Дата и время начала:</strong> {{ training_session.start_time }}</p>
+                        <p class="card-text"><strong>Дата и время окончания:</strong> {{ training_session.end_time }}</p>
+                        <p class="card-text"><strong>Номер комнаты:</strong> {{ training_session.room_number }}</p>
+                        <a href="{{ url_for('main.apply_class', session_id=training_session.session_id) }}" class="btn btn-success">Присоединиться</a>
                     </div>
                 </div>
             </div>

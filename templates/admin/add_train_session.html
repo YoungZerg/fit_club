@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Training Sessions</title>
+    <title>Создание занятий</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="{{url_for('static', filename='styles/sidebar.css')}}" rel="stylesheet">
@@ -58,17 +58,17 @@
     {% endwith %}
     <div class="main-content">
         <div class="container mt-4">
-            <h1>Training Sessions</h1>
+            <h1>Тренировочные занятия</h1>
             <img src="{{ url_for('static', filename='images/pen(1).png') }}" alt="Add Training Session" class="pen-icon" data-bs-toggle="modal" data-bs-target="#addSessionModal">
             <div class="row">
                 {% for training_session in all_sessions %}
                 <div class="col-md-4">
                     <div class="session-card">
                         <h5>{{ training_session.class_name }}</h5> <!-- Class Name -->
-                        <p><strong>Trainer:</strong> {{ training_session.trainer_name }}</p>
-                        <p><strong>Start Time:</strong> {{ training_session.start_time }}</p>
-                        <p><strong>End Time:</strong> {{ training_session.end_time }}</p>
-                        <p><strong>Room Number:</strong> {{ training_session.room_number }}</p>
+                        <p><strong>Тренер:</strong> {{ training_session.trainer_name }}</p>
+                        <p><strong>Дата и время начала:</strong> {{ training_session.start_time }}</p>
+                        <p><strong>Дата и время окончания:</strong> {{ training_session.end_time }}</p>
+                        <p><strong>Номер комнаты:</strong> {{ training_session.room_number }}</p>
                     </div>
                 </div>
                 {% endfor %}
@@ -82,13 +82,13 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="addSessionModalLabel">Add Training Session</h5>
+                    <h5 class="modal-title" id="addSessionModalLabel">Добавление тренировочного занятия</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <form method="POST" action="{{ url_for('admin.add_training_session') }}">
                         <div class="mb-3">
-                            <label for="class_name" class="form-label">Class Name</label>
+                            <label for="class_name" class="form-label">Название класса</label>
                             <select class="form-control" id="class_name" name="class_name">
                                 {%for training_class in all_classes%}
                                     <option value={{training_class.class_id}}>{{training_class.class_name}}</option>
@@ -96,7 +96,7 @@
                             </select>
                         </div>
                         <div class="mb-3">
-                            <label for="trainer_name" class="form-label">Trainer Name</label>
+                            <label for="trainer_name" class="form-label">Тренер</label>
                             <select class="form-control" id="trainer_name" name="trainer_name">
                                 {%for trainer in all_trainers%}
                                     <option value={{trainer.trainer_id}}>{{trainer.trainer_name}}</option>
@@ -104,18 +104,18 @@
                             </select>
                         </div>
                         <div class="mb-3">
-                            <label for="room_number" class="form-label">Room Number</label>
+                            <label for="room_number" class="form-label">Номер комнаты</label>
                             <input type="number" class="form-control" id="room_number" name="room_number" required>
                         </div>
                         <div class="mb-3">
-                            <label for="start_time" class="form-label">Start Time</label>
+                            <label for="start_time" class="form-label">Дата и время начала занятия</label>
                             <input type="datetime-local" class="form-control" id="start_time" name="start_time" required>
                         </div>
                         <div class="mb-3">
-                            <label for="end_time" class="form-label">End Time</label>
+                            <label for="end_time" class="form-label">Дата и время конца занятия</label>
                             <input type="datetime-local" class="form-control" id="end_time" name="end_time" required>
                         </div>
-                        <button type="submit" class="btn btn-primary">Add Training Session</button>
+                        <button type="submit" class="btn btn-primary">Добавить занятие</button>
                     </form>
                 </div>
             </div>

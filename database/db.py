@@ -39,13 +39,13 @@ def create_connection():
         logging.error(f"An error occured while connecting: {e}")
         return None
 
-def execute_query(query):
+def execute_query(query: str, params: tuple):
     connection = create_connection()
     if connection:
         try:
             with connection:
                 with connection.cursor() as cursor:
-                    cursor.execute(query)
+                    cursor.execute(query, params)
                     logging.info("Query executed successfully")
         except OperationalError as e:
             logging.error(f"An error occured during query execution: {e}")
@@ -53,13 +53,13 @@ def execute_query(query):
             connection.close()
             logging.info("PostgreSQL connection is closed")
         
-def fetch_query(query):
+def fetch_query(query: str, params: tuple = ()):
     connection = create_connection()
     if connection:
         try:
             with connection:
                 with connection.cursor() as cursor:
-                    cursor.execute(query)
+                    cursor.execute(query, params)
                     result = cursor.fetchall()
                     logging.info("Query fetched successfully")
                     return result
@@ -382,5 +382,3 @@ def add_order_items(cart_items: List[Dict[int, int]]):
     finally:
         connection.close()
         logging.info("PostgreSQL connection is closed")
-
-

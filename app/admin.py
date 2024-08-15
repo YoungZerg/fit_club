@@ -16,8 +16,8 @@ ph = PasswordHasher()
 def admin_home():
     if 'admin_id' in session:
         admin_id = session['admin_id']
-        retrieve_admin_name = "SELECT name FROM admin WHERE id = %i;" % admin_id
-        admin_name = fetch_query(retrieve_admin_name)[0][0]
+        retrieve_admin_name = "SELECT name FROM admin WHERE id = %s;"
+        admin_name = fetch_query(retrieve_admin_name, (admin_id,))[0][0]
         return render_template('admin_main.html', admin_name=admin_name)
     return redirect(url_for('admin.admin_login'))
  
@@ -28,11 +28,11 @@ def admin_login():
         email = request.form.get("email")
         password = request.form.get("password")
 
-        fetch_admin = "SELECT id, password_hash FROM admin WHERE email = '%s';" % email
-        admin = fetch_query(fetch_admin)
+        fetch_admin = "SELECT id, password_hash FROM admin WHERE email = %s;"
+        admin = fetch_query(fetch_admin, (email,))
 
         if (len(admin) == 0) or (len(admin) != 0 and not verify_password(admin[0][1], password)):
-            flash('Please check your login details and try again.')
+            flash('Пожалуйста, проверьте введенные данные и попытайтесь войти снова.')
             return redirect(url_for('admin.admin_login'))
         
         session['admin_id'] = admin[0][0]
@@ -47,12 +47,12 @@ def admin_signup():
         email = request.form.get("email")
         password = request.form.get("password")
 
-        is_admin_exists = "SELECT exists (SELECT 1 FROM admin WHERE email = '%s' LIMIT 1);" % email
+        is_admin_exists = "SELECT exists (SELECT 1 FROM admin WHERE email = %s LIMIT 1);"
 
-        result = fetch_query(is_admin_exists)[0][0]
+        result = fetch_query(is_admin_exists, (email,))[0][0]
 
         if result:
-            flash("Admin already exists.")
+            flash("Администратор с такой почтой уже существует.")
             return redirect(url_for('admin.admin_signup'))
         
         hashed_password = ph.hash(password)
@@ -78,16 +78,16 @@ def add_new_equipment():
         category = request.form.get("category")
 
         if name is None or description is None or price is None or category is None:
-            flash("Please enter all parameters")
+            flash("Пожалуйста, заполните все поля.")
             return redirect(url_for('admin.add_new_equipment'))
 
         if "equipment_photo" not in request.files:
-            flash("Please choose an image for a product")
+            flash("Пожалуйста, выберите изображение для товара.")
             return redirect(url_for('admin.add_new_equipment'))
         
         file = request.files["equipment_photo"]
         if file.filename == "":
-            flash("Please choose an image for a product")
+            flash("Пожалуйста, выберите изображение для товара.")
             return redirect(url_for('admin.add_new_equipment'))
         
         if file and allowed_file(file.filename):
@@ -140,9 +140,9 @@ def equipment_page(equipment_id):
     FROM equipment
     INNER JOIN category
     ON equipment.category = category.id
-    WHERE equipment.id = %i;
-    """ % equipment_id
-    equipment_info = fetch_query(fetch_equipment_info)[0]
+    WHERE equipment.id = %s;
+    """
+    equipment_info = fetch_query(fetch_equipment_info, (equipment_id,))[0]
 
     equipment = {
         "id": equipment_info[0],
@@ -163,7 +163,7 @@ def add_new_category():
         description = request.form.get("description")
 
         if (name is None or description is None) or (len(name) == 0 or len(description) == 0):
-            flash("Please enter all parameters")
+            flash("Пожалуйста, заполните все поля.")
             return redirect(url_for('admin.add_new_category'))
         else: 
             add_category(name, description)
@@ -177,7 +177,7 @@ def add_new_class():
         name = request.form.get("name")
         description = request.form.get("description")
         if (name is None or description is None) or (len(name) == 0 or len(description) == 0):
-            flash("Please enter all parameters")
+            flash("Пожалуйста, заполните все поля.")
             return redirect(url_for('admin.add_new_class'))
             
         add_class(name, description)
@@ -286,8 +286,8 @@ def order_page(order_id):
 
     if request.method == "POST":
         new_order_status = request.form.get("status")
-        update_order_status_query = "UPDATE \"order\" SET status = '%s' WHERE id = %i;" % (new_order_status, order_id)
-        execute_query(update_order_status_query)    
+        update_order_status_query = "UPDATE \"order\" SET status = %s WHERE id = %s;"
+        execute_query(update_order_status_query, (new_order_status, order_id))    
         return redirect(url_for('admin.order_page', order_id=order_id))
 
 
@@ -299,10 +299,10 @@ def order_page(order_id):
     FROM "order"
     INNER JOIN customer
     ON "order".customer = customer.id
-    WHERE "order".id = %i;
-    """ % order_id
+    WHERE "order".id = %s;
+    """
 
-    order_info_raw = fetch_query(fetch_order_info)[0]
+    order_info_raw = fetch_query(fetch_order_info, (order_id,))[0]
 
     order_info = {
             "customer_name": order_info_raw[0],
@@ -319,10 +319,10 @@ def order_page(order_id):
     FROM order_items
     INNER JOIN equipment
     ON order_items.equipment = equipment.id
-    WHERE order_items."order" = %i; 
-    """ % order_id
+    WHERE order_items."order" = %s; 
+    """
 
-    order_items_raw = fetch_query(fetch_order_items)
+    order_items_raw = fetch_query(fetch_order_items, (order_id,))
     
     order_items = []
 
@@ -346,33 +346,33 @@ def order_page(order_id):
 def update_order_item_quantity(order_id, equipment_id):
     
     action = request.form.get("action")
-    fetch_item_quantity = "SELECT quantity FROM order_items WHERE \"order\" = %i AND equipment = %i;" % (order_id, equipment_id)
+    fetch_item_quantity = "SELECT quantity FROM order_items WHERE \"order\" = %s AND equipment = %s;" 
 
-    current_item_quantity = fetch_query(fetch_item_quantity)[0][0]
+    current_item_quantity = fetch_query(fetch_item_quantity, (order_id, equipment_id))[0][0]
 
-    current_item_price = fetch_query("SELECT price FROM equipment WHERE id = %i;" % equipment_id)[0][0]
+    current_item_price = fetch_query("SELECT price FROM equipment WHERE id = %s;", (equipment_id,))[0][0]
 
-    current_order_total = fetch_query("SELECT total FROM \"order\" WHERE id = %i" % order_id)[0][0]
+    current_order_total = fetch_query("SELECT total FROM \"order\" WHERE id = %s", (order_id,))[0][0]
 
     if action == "add":
         current_item_quantity += 1
-        new_order_total = "UPDATE \"order\" SET total = %i WHERE id = %i;" % (current_order_total+current_item_price, order_id)
-        execute_query(new_order_total)
+        new_order_total = "UPDATE \"order\" SET total = %s WHERE id = %s;" 
+        execute_query(new_order_total, (current_order_total+current_item_price, order_id))
 
     elif action=="subtract":
         if current_item_quantity == 1:
-            new_order_total = "UPDATE \"order\" SET total = %i WHERE id = %i;" % (current_order_total-current_item_price, order_id)
-            execute_query(new_order_total)
+            new_order_total = "UPDATE \"order\" SET total = %s WHERE id = %s;" 
+            execute_query(new_order_total, (current_order_total-current_item_price, order_id))
 
-            delete_item_query = "DELETE FROM order_items WHERE \"order\" = %i AND equipment = %i;" % (order_id, equipment_id)
-            execute_query(delete_item_query)
+            delete_item_query = "DELETE FROM order_items WHERE \"order\" = %s AND equipment = %s;"  
+            execute_query(delete_item_query, (order_id, equipment_id))
         else:
             current_item_quantity -= 1
-            new_order_total = "UPDATE \"order\" SET total = %i WHERE id = %i;" % (current_order_total-current_item_price, order_id)
-            execute_query(new_order_total)
+            new_order_total = "UPDATE \"order\" SET total = %s WHERE id = %s;"
+            execute_query(new_order_total, (current_order_total-current_item_price, order_id))
     
-    update_item_quantity = "UPDATE order_items SET quantity = %i WHERE \"order\"= %i AND equipment = %i" % (current_item_quantity, order_id, equipment_id)
-    execute_query(update_item_quantity)
+    update_item_quantity = "UPDATE order_items SET quantity = %s WHERE \"order\"= %s AND equipment = %s"
+    execute_query(update_item_quantity, (current_item_quantity, order_id, equipment_id))
 
     return redirect(url_for('admin.order_page', order_id=order_id))
 
@@ -392,10 +392,10 @@ def search_order():
     FROM "order"
     INNER JOIN customer
     ON "order".customer = customer.id
-    WHERE regexp_like(customer.name, '%s', 'i');  
-    """ % search_string
+    WHERE regexp_like(customer.name, %s, 'i');  
+    """
 
-    all_orders_raw = fetch_query(fetch_all_customer_orders)
+    all_orders_raw = fetch_query(fetch_all_customer_orders, (search_string,))
 
     all_orders = []
 
@@ -426,11 +426,11 @@ def search_equipment():
     FROM equipment
     INNER JOIN category
     ON equipment.category = category.id
-    WHERE regexp_like(equipment.name, '%s', 'i');  
-    """ % search_string
+    WHERE regexp_like(equipment.name, %s, 'i');  
+    """
 
 
-    equipments = fetch_query(fetch_all_equipment)
+    equipments = fetch_query(fetch_all_equipment, (search_string,))
     equipment_list = []
     for product in equipments:
         product_info = {
@@ -477,11 +477,11 @@ def manage_user_subscription(user_id):
 
             update_current_customer_plan = """
             UPDATE membership
-            SET subscription = %i
-            WHERE customer = %i;
-            """ % (int(selected_plan_id), user_id)
+            SET subscription = %s
+            WHERE customer = %s;
+            """
 
-            execute_query(update_current_customer_plan)
+            execute_query(update_current_customer_plan, (int(selected_plan_id), user_id))
 
             return redirect(url_for('admin.manage_user_subscription', user_id=user_id))
 
@@ -492,11 +492,11 @@ def manage_user_subscription(user_id):
 
             update_current_customer_plan = """
             UPDATE membership
-            SET start_date = '%s', end_date = '%s', subscription = %i
-            WHERE customer = %i;
-            """ % (start_datetime, end_datetime, int(selected_plan_id), user_id)
+            SET start_date = %s, end_date = %s, subscription = %s
+            WHERE customer = %s;
+            """ 
 
-            execute_query(update_current_customer_plan)
+            execute_query(update_current_customer_plan, (start_datetime, end_datetime, int(selected_plan_id), user_id))
 
             return redirect(url_for('admin.manage_user_subscription', user_id=user_id))
 
@@ -507,10 +507,10 @@ def manage_user_subscription(user_id):
            membership.subscription
     FROM membership
     INNER JOIN customer ON customer.id = membership.customer
-    WHERE customer.id = %i;
-    """ % user_id
+    WHERE customer.id = %s;
+    """
 
-    user_info_raw = fetch_query(fetch_user_info)[0]
+    user_info_raw = fetch_query(fetch_user_info, (user_id,))[0]
 
     user_info = {
         "id": user_id,

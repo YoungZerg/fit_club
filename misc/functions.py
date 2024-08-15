@@ -7,3 +7,9 @@ def allowed_file(filename):
 
 def allowed_cert(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_FILE_EXTENSIONS
+
+#def validate_user_input(input_string):
+#    return
+#
+#def validate_email(email):
+#    return

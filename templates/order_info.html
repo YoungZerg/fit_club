@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Order Details</title>
+    <title>Информация о заказе</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
@@ -28,7 +28,7 @@
 <body>
     {% include 'header.html' %}
     <div class="container mt-4">
-        <h1>Order Details</h1>
+        <h1>Информация о заказе</h1>
         {% with messages = get_flashed_messages() %}
             {% if messages %}
                 <div class="alert alert-success" role="alert">
@@ -38,18 +38,18 @@
         {% endwith %}
         <div class="row">
             <div class="col-md-12">
-                <h2>Order ID: {{ order_info.order_id }}</h2>
-                <p><strong>Total Price:</strong> {{ order_info.order_total_price }}р.</p>
-                <p><strong>Status:</strong> {{ order_info.order_status }}</p>
+                <h2>ID заказа: {{ order_info.order_id }}</h2>
+                <p><strong>Итоговая сумма:</strong> {{ order_info.order_total_price }}р.</p>
+                <p><strong>Статус заказа:</strong> {{ order_info.order_status }}</p>
             </div>
         </div>
-        <h3 class="mt-4">Items in this Order:</h3>
+        <h3 class="mt-4">Товары в заказе:</h3>
         <div class="row">
             {% for item in current_order_items %}
             <div class="col-md-4 order-item">
                 <h5>{{ item.item_name }}</h5>
-                <p><strong>Quantity:</strong> {{ item.item_quantity }}</p>
-                <p><strong>Total Price:</strong> {{ item.item_total_price }}р.</p>
+                <p><strong>Количество:</strong> {{ item.item_quantity }}</p>
+                <p><strong>Общая сумма товара:</strong> {{ item.item_total_price }}р.</p>
                 {% if order_info.order_status == "Обрабатывается" %}
                 <div class="quantity-controls">
                     <form method="POST" action="{{ url_for('main.update_order_item_quantity', order_id=order_info.order_id, equipment_id=item.item_id) }}">

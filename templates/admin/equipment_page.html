@@ -33,13 +33,13 @@
                     {% endif %}
                 </div>
                 <div class="col-md-6">
-                    <h3>Details</h3>
-                    <p><strong>Description:</strong> {{ equipment.description }}</p>
-                    <p><strong>Price:</strong> {{ equipment.price }}р.</p>
-                    <p><strong>Category:</strong> {{ equipment.category }}</p>
+                    <h3>Информация о товаре</h3>
+                    <p><strong>Описание:</strong> {{ equipment.description }}</p>
+                    <p><strong>Цена:</strong> {{ equipment.price }}р.</p>
+                    <p><strong>Категория товара:</strong> {{ equipment.category }}</p>
                 </div>
             </div>
-            <a href="{{ url_for('admin.list_all_equipment') }}" class="btn btn-secondary mt-3">Back to Products</a>
+            <a href="{{ url_for('admin.list_all_equipment') }}" class="btn btn-secondary mt-3">Назад</a>
         </div>
     </div>
     <!-- Bootstrap JS -->

@@ -15,9 +15,9 @@ def home():
     if 'customer_id' in session:
         user = session['customer_id']
 
-        user_name_query = "SELECT name, profile_pic_path FROM customer WHERE id = %i;" % user
+        user_name_query = "SELECT name, profile_pic_path FROM customer WHERE id = %s;"
 
-        username, profile_picture = fetch_query(user_name_query)[0]
+        username, profile_picture = fetch_query(user_name_query, (user,))[0]
 
         return render_template('index.html', username=username, profile_picture=profile_picture)
     return render_template('index.html')
@@ -40,10 +40,10 @@ def user_page():
                membership.end_date
         FROM membership
         INNER JOIN customer ON membership.customer = customer.id
-        WHERE customer.id = %i;
-        """ % user
+        WHERE customer.id = %s;
+        """
 
-        fetched_user_info = fetch_query(user_info_query)[0]
+        fetched_user_info = fetch_query(user_info_query, (user,))[0]
 
         user_info = {"name": fetched_user_info[0],
                      "email": fetched_user_info[1],
@@ -55,9 +55,9 @@ def user_page():
                      "profile_pic_path": fetched_user_info[7],
                      "expiration_date": fetched_user_info[8]}
         
-        is_customer_plan_null_query = "SELECT subscription FROM membership WHERE customer = %i;" % user
+        is_customer_plan_null_query = "SELECT subscription FROM membership WHERE customer = %s;"
 
-        customer_plan = fetch_query(is_customer_plan_null_query)[0][0]
+        customer_plan = fetch_query(is_customer_plan_null_query, (user,))[0][0]
 
         current_plan_name = ""
 
@@ -68,9 +68,9 @@ def user_page():
             SELECT subscription.plan_name
             FROM membership
             INNER JOIN subscription ON membership.subscription = subscription.id
-            WHERE membership.customer = %i;
-            """ % user
-            current_plan_name = fetch_query(fetch_current_plan_name)[0][0]
+            WHERE membership.customer = %s;
+            """
+            current_plan_name = fetch_query(fetch_current_plan_name, (user,))[0][0]
 
         return render_template('profile.html', user_info=user_info, plan_name=current_plan_name) 
 
@@ -83,8 +83,8 @@ def edit_user_profile():
     
     user = session['customer_id']
 
-    user_info_query = "SELECT name, email, tel_number, birth_date, address, postal_code, sex FROM customer WHERE id = %i;" % user
-    fetched_user_info = fetch_query(user_info_query)[0]
+    user_info_query = "SELECT name, email, tel_number, birth_date, address, postal_code, sex FROM customer WHERE id = %s;"
+    fetched_user_info = fetch_query(user_info_query, (user,))[0]
     user_info = {"name": fetched_user_info[0],
                  "email": fetched_user_info[1],
                  "telephone": fetched_user_info[2],
@@ -166,12 +166,12 @@ def all_classes():
 def apply_class(session_id):
     current_user = session['customer_id']
 
-    is_user_in_train_session = "SELECT exists(SELECT 1 FROM cust_train_session WHERE training_session = %i AND customer = %i);" % (session_id, current_user)
+    is_user_in_train_session = "SELECT exists(SELECT 1 FROM cust_train_session WHERE training_session = %s AND customer = %s);"
 
-    result = fetch_query(is_user_in_train_session)[0][0]
+    result = fetch_query(is_user_in_train_session, (session_id, current_user))[0][0]
 
     if result:
-        flash("You already parcitipate in that class")
+        flash("Вы уже присоединились к занятию.")
         return redirect(url_for('main.all_classes'))
     
     add_customer_to_class(current_user, session_id)
@@ -220,7 +220,6 @@ def shop_page():
     
     return render_template('equipment.html', equipment_list=equipment_list, categories=categories)
 
-#{{ url_for('main.filter_by_category', category_id=category.id) }}
 
 @main.route('/equipment/filter-by-category/<int:category_id>')
 def filter_by_category(category_id):
@@ -233,10 +232,9 @@ def filter_by_category(category_id):
     FROM equipment
     INNER JOIN category
     ON equipment.category = category.id
-    WHERE equipment.category =  %i;
-    """ % category_id
-
-    equipments = fetch_query(fetch_items)
+    WHERE equipment.category =  %s;
+    """
+    equipments = fetch_query(fetch_items, (category_id,))
     equipment_list = []
     for product in equipments:
         product_info = {
@@ -274,9 +272,9 @@ def product_details(product_id):
     FROM equipment
     INNER JOIN category
     ON equipment.category = category.id
-    WHERE equipment.id = %i;
-    """ % product_id
-    equipment_info = fetch_query(fetch_equipment_info)[0]
+    WHERE equipment.id = %s;
+    """
+    equipment_info = fetch_query(fetch_equipment_info, (product_id,))[0]
 
     equipment = {
         "id": equipment_info[0],
@@ -294,20 +292,20 @@ def product_details(product_id):
 def add_to_cart(equipment_id):
     current_user = session['customer_id']
 
-    customer_cart_id_query = "SELECT id FROM shopping_session WHERE customer = %i;" % current_user
+    customer_cart_id_query = "SELECT id FROM shopping_session WHERE customer = %s;"
 
-    customer_cart_id = fetch_query(customer_cart_id_query)[0][0]
+    customer_cart_id = fetch_query(customer_cart_id_query, (current_user,))[0][0]
 
     check_cart_item_query = """
-    SELECT id, quantity FROM cart_item WHERE shopping_session = %i AND equipment = %i;
-    """ % (customer_cart_id, equipment_id)
+    SELECT id, quantity FROM cart_item WHERE shopping_session = %s AND equipment = %s;
+    """
 
-    cart_item_result = fetch_query(check_cart_item_query)
+    cart_item_result = fetch_query(check_cart_item_query, (customer_cart_id, equipment_id))
 
     update_time = (datetime.now()).strftime("%Y-%m-%d %H:%M:%S")
 
-    update_customer_cart_query = "UPDATE shopping_session SET modified_at = '%s' WHERE id = %i;" % (update_time, customer_cart_id)
-    execute_query(update_customer_cart_query)
+    update_customer_cart_query = "UPDATE shopping_session SET modified_at = %s WHERE id = %s;"
+    execute_query(update_customer_cart_query, (update_time, customer_cart_id))
     #if current item exists -> increment quantity
     if cart_item_result:
         cart_item_id, current_item_quantity = cart_item_result[0]
@@ -316,17 +314,17 @@ def add_to_cart(equipment_id):
 
         update_item_quantity_query = """
         UPDATE cart_item
-        SET quantity = %i, modified_at = '%s' WHERE id = %i;
-        """ % (current_item_quantity, update_time, cart_item_id)
-        execute_query(update_item_quantity_query)
+        SET quantity = %s, modified_at = %s WHERE id = %s;
+        """
+        execute_query(update_item_quantity_query, (current_item_quantity, update_time, cart_item_id))
     else:
         add_cart_item_query = """
         INSERT INTO cart_item(created_at, modified_at, shopping_session, equipment, quantity)
-        VALUES ('%s', '%s', %i, %i, 1)
-        """ % (update_time, update_time, customer_cart_id, equipment_id)
-        execute_query(add_cart_item_query)
+        VALUES (%s, %s, %s, %s, 1)
+        """
+        execute_query(add_cart_item_query, (update_time, update_time, customer_cart_id, equipment_id))
 
-    flash('Item was added to cart!')
+    flash('Товар был добавлен в корзину!')
     return redirect(url_for('main.product_details', product_id=equipment_id))
 
 
@@ -347,10 +345,10 @@ def user_cart():
     FROM cart_item
     INNER JOIN equipment
     ON cart_item.equipment = equipment.id
-    WHERE cart_item.shopping_session = (SELECT id FROM shopping_session WHERE customer = %i);
-    """ % current_user
+    WHERE cart_item.shopping_session = (SELECT id FROM shopping_session WHERE customer = %s);
+    """
 
-    customer_cart_items_raw = fetch_query(fetch_customer_cart_items_query)
+    customer_cart_items_raw = fetch_query(fetch_customer_cart_items_query, (current_user,))
 
     customer_cart_items = []
 
@@ -376,50 +374,49 @@ def update_item_quantity(equipment_id):
     action = request.form.get('action')
     current_user = session['customer_id']
 
-    current_cart_id_query = "SELECT id FROM shopping_session WHERE customer = %i" % current_user
-    current_cart_id = fetch_query(current_cart_id_query)[0][0]
+    current_cart_id_query = "SELECT id FROM shopping_session WHERE customer = %s"
+    current_cart_id = fetch_query(current_cart_id_query, (current_user,))[0][0]
 
     update_time = (datetime.now()).strftime("%Y-%m-%d %H:%M:%S")
-    cart_update_modified_time_query = "UPDATE shopping_session SET modified_at = '%s' WHERE id = %i;" % (update_time, current_cart_id)
+    cart_update_modified_time_query = "UPDATE shopping_session SET modified_at = %s WHERE id = %s;"
 
-    execute_query(cart_update_modified_time_query)
+    execute_query(cart_update_modified_time_query, (update_time, current_cart_id))
 
     fetch_item_quantity_query = """
     SELECT quantity
     FROM cart_item
-    WHERE equipment = %i AND shopping_session = %i;
-    """ % (equipment_id, current_cart_id)
+    WHERE equipment = %s AND shopping_session = %s;
+    """
 
-    current_item_quantity = fetch_query(fetch_item_quantity_query)[0][0]
+    current_item_quantity = fetch_query(fetch_item_quantity_query, (equipment_id, current_cart_id))[0][0]
 
     if action == "add":
         current_item_quantity += 1
     elif action == "subtract":
         if current_item_quantity == 1:
-            delete_item_query = "DELETE FROM cart_item WHERE equipment = %i AND shopping_session = %i;" % (equipment_id, current_cart_id)
-            execute_query(delete_item_query)
-            flash("Item was removed from cart")
+            delete_item_query = "DELETE FROM cart_item WHERE equipment = %s AND shopping_session = %s;" 
+            execute_query(delete_item_query, (equipment_id, current_cart_id))
+            flash("Товар был убран из корзины.")
             return redirect(url_for('main.user_cart'))
         else:
             current_item_quantity -= 1
     
     update_cart_item_info_query = """
     UPDATE cart_item
-    SET modified_at = '%s', quantity = %i WHERE equipment = %i AND shopping_session = %i;
-    """ % (update_time, current_item_quantity, equipment_id, current_cart_id)
+    SET modified_at = %s, quantity = %s WHERE equipment = %s AND shopping_session = %s;
+    """
     
-    execute_query(update_cart_item_info_query)
+    execute_query(update_cart_item_info_query, (update_time, current_item_quantity, equipment_id, current_cart_id))
 
-    flash('Cart updated successfully.')
+    flash('Корзина успешно обновлена.')
     return redirect(url_for('main.user_cart'))
 
 @main.route('/profile/cart/make-order', methods=["POST"])
 def make_order():
     current_user = session['customer_id']
 
-    current_cart_id_query = "SELECT id FROM shopping_session WHERE customer = %i;" % current_user
-
-    current_cart_id = fetch_query(current_cart_id_query)[0][0]
+    current_cart_id_query = "SELECT id FROM shopping_session WHERE customer = %s;"
+    current_cart_id = fetch_query(current_cart_id_query, (current_user,))[0][0]
 
     fetch_cart_items_query = """
     SELECT cart_item.equipment,
@@ -427,12 +424,10 @@ def make_order():
            equipment.price * cart_item.quantity AS total_item_price
     FROM cart_item
     INNER JOIN equipment ON cart_item.equipment = equipment.id
-    WHERE cart_item.shopping_session = %i; 
-    """ % current_cart_id
+    WHERE cart_item.shopping_session = %s; 
+    """
 
-    cart_items_raw = fetch_query(fetch_cart_items_query)
-
-
+    cart_items_raw = fetch_query(fetch_cart_items_query, (current_cart_id,))
 
     order_total = sum([item[2] for item in cart_items_raw])
 
@@ -450,8 +445,8 @@ def make_order():
 
     add_order_items(cart_items)
 
-    clear_customer_cart_query = "DELETE FROM cart_item WHERE shopping_session = %i;" % current_cart_id
-    execute_query(clear_customer_cart_query)
+    clear_customer_cart_query = "DELETE FROM cart_item WHERE shopping_session = %s;" 
+    execute_query(clear_customer_cart_query, (current_cart_id,))
 
     return redirect(url_for('main.user_order_history'))
 
@@ -468,10 +463,10 @@ def user_order_history():
            total,
            status
     FROM "order"
-    WHERE customer = %i;
-    """ % current_customer
+    WHERE customer = %s;
+    """
 
-    all_customer_orders_raw = fetch_query(fetch_all_customer_orders_query)
+    all_customer_orders_raw = fetch_query(fetch_all_customer_orders_query, (current_customer,))
 
     all_customer_orders = []
 
@@ -494,10 +489,10 @@ def render_order_info(order_id):
            total as order_total_price,
            status
     FROM "order"
-    WHERE id = %i;
-    """ % order_id
+    WHERE id = %s;
+    """
 
-    order_info_result_raw = fetch_query(fetch_order_info_query)[0]
+    order_info_result_raw = fetch_query(fetch_order_info_query, (order_id,))[0]
 
     order_info = {
         "order_id": order_info_result_raw[0],
@@ -513,10 +508,10 @@ def render_order_info(order_id):
     FROM order_items
     INNER JOIN equipment
     ON order_items.equipment = equipment.id
-    WHERE order_items."order" = %i;
-    """ % order_id
+    WHERE order_items."order" = %s;
+    """
 
-    current_order_items_raw = fetch_query(fetch_order_items_query)
+    current_order_items_raw = fetch_query(fetch_order_items_query, (order_id,))
 
     current_order_items = []
 
@@ -536,49 +531,49 @@ def render_order_info(order_id):
 def update_order_item_quantity(order_id, equipment_id):
     action = request.form.get("action")
 
-    fetch_order_status = "SELECT status FROM \"order\" WHERE id = %i;" % order_id 
+    fetch_order_status = "SELECT status FROM \"order\" WHERE id = %s;"
 
-    order_status = fetch_query(fetch_order_status)[0][0]
+    order_status = fetch_query(fetch_order_status, (order_id,))[0][0]
 
-    fetch_order_total = "SELECT total FROM \"order\" WHERE id = %i;" % order_id 
+    fetch_order_total = "SELECT total FROM \"order\" WHERE id = %s;"
 
-    order_total = fetch_query(fetch_order_total)[0][0]
+    order_total = fetch_query(fetch_order_total, (order_id,))[0][0]
 
     if order_status != "Обрабатывается":
         return redirect(url_for('main.render_order_info', order_id=order_id))   
 
     update_time = (datetime.now()).strftime("%Y-%m-%d %H:%M:%S")
-    update_order_time = "UPDATE \"order\" SET modified_at='%s' WHERE id=%i;" % (update_time, order_id)
-    execute_query(update_order_time)
+    update_order_time = "UPDATE \"order\" SET modified_at=%s WHERE id=%s;"
+    execute_query(update_order_time, (update_time, order_id))
 
-    fetch_order_item_quantity = "SELECT quantity FROM order_items WHERE equipment=%i AND \"order\"=%i;" % (equipment_id, order_id)
+    fetch_order_item_quantity = "SELECT quantity FROM order_items WHERE equipment=%s AND \"order\"=%s;" 
 
-    current_item_quantity = fetch_query(fetch_order_item_quantity)[0][0]
+    current_item_quantity = fetch_query(fetch_order_item_quantity, (equipment_id, order_id))[0][0]
 
-    fetch_item_price = "SELECT price FROM equipment WHERE id = %i;" % equipment_id
+    fetch_item_price = "SELECT price FROM equipment WHERE id = %s;"
 
-    item_price = fetch_query(fetch_item_price)[0][0]
+    item_price = fetch_query(fetch_item_price, (equipment_id,))[0][0]
 
     if action == "add":
         current_item_quantity += 1
-        new_order_total = "UPDATE \"order\" SET total = %i WHERE id = %i;" % (order_total+item_price, order_id)
-        execute_query(new_order_total)
+        new_order_total = "UPDATE \"order\" SET total = %s WHERE id = %s;"
+        execute_query(new_order_total, (order_total+item_price, order_id))
     elif action == "subtract":
         if current_item_quantity == 1:
-            new_order_total = "UPDATE \"order\" SET total = %i WHERE id = %i;" % (order_total-item_price, order_id)
-            execute_query(new_order_total)
+            new_order_total = "UPDATE \"order\" SET total = %s WHERE id = %s;"
+            execute_query(new_order_total, (order_total-item_price, order_id))
 
-            delete_item_from_order = "DELETE FROM order_items WHERE equipment=%i AND \"order\"=%i;" % (equipment_id, order_id)
-            execute_query(delete_item_from_order)
-            flash("Item was deleted from order")
+            delete_item_from_order = "DELETE FROM order_items WHERE equipment=%s AND \"order\"=%s;"
+            execute_query(delete_item_from_order, (equipment_id, order_id))
+            flash("Товар был убран из заказа.")
             return redirect(url_for('main.render_order_info', order_id=order_id))
         else:
             current_item_quantity -= 1
-            new_order_total = "UPDATE \"order\" SET total = %i WHERE id = %i;" % (order_total-item_price, order_id)
-            execute_query(new_order_total)
+            new_order_total = "UPDATE \"order\" SET total = %s WHERE id = %s;"
+            execute_query(new_order_total, (order_total-item_price, order_id))
 
-    update_order_item_time = "UPDATE order_items SET modified_at='%s', quantity=%i WHERE \"order\"=%i AND equipment=%i;" % (update_time, current_item_quantity, order_id, equipment_id) 
-    execute_query(update_order_item_time)
+    update_order_item_time = "UPDATE order_items SET modified_at=%s, quantity=%s WHERE \"order\"=%s AND equipment=%s;"  
+    execute_query(update_order_item_time, (update_time, current_item_quantity, order_id, equipment_id))
     return redirect(url_for('main.render_order_info', order_id=order_id))
 
 
@@ -598,10 +593,10 @@ def search_equipment():
         FROM equipment
         INNER JOIN category
         ON equipment.category = category.id
-        WHERE regexp_like(equipment.name, '%s', 'i');  
-        """ % search_string
+        WHERE regexp_like(equipment.name, %s, 'i');  
+        """
     
-    equipments = fetch_query(fetch_all_equipment)
+    equipments = fetch_query(fetch_all_equipment, (search_string,))
     equipment_list = []
     for product in equipments:
         product_info = {
@@ -646,11 +641,11 @@ def training_history():
     FROM training_session
     INNER JOIN class ON training_session.class = class.id
     INNER JOIN trainer ON training_session.trainer = trainer.id
-    WHERE training_session.id IN  (SELECT training_session from cust_train_session WHERE customer = %i)
+    WHERE training_session.id IN  (SELECT training_session from cust_train_session WHERE customer = %s)
     ORDER BY training_session.start_time;
-    """ % current_user
+    """
 
-    current_user_training_sessions_query = fetch_query(current_user_training_sessions_query)
+    current_user_training_sessions_query = fetch_query(current_user_training_sessions_query, (current_user,))
 
     past_training_sessions = []
 

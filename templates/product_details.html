@@ -34,16 +34,16 @@
                 {% endif %}
             </div>
             <div class="col-md-6">
-                <h3>Details</h3>
-                <p><strong>Description:</strong> {{ equipment.description }}</p>
-                <p><strong>Price:</strong> {{ equipment.price }}р.</p>
-                <p><strong>Category:</strong> {{ equipment.category }}</p>
+                <h3>Информация о товаре</h3>
+                <p><strong>Описание:</strong> {{ equipment.description }}</p>
+                <p><strong>Цена:</strong> {{ equipment.price }}р.</p>
+                <p><strong>Категория товара:</strong> {{ equipment.category }}</p>
                 <form method="POST" action="{{ url_for('main.add_to_cart', equipment_id=equipment.id) }}">
-                    <button type="submit" class="btn btn-primary mt-3">Add to Cart</button>
+                    <button type="submit" class="btn btn-primary mt-3">Добавить в корзину</button>
                 </form>
             </div>
         </div>
-        <a href="{{ url_for('main.shop_page') }}" class="btn btn-secondary mt-3">Back to Products</a>
+        <a href="{{ url_for('main.shop_page') }}" class="btn btn-secondary mt-3">Назад</a>
     </div>
     {% include 'footer.html' %}
     <!-- Bootstrap JS -->
