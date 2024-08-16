@@ -19,7 +19,22 @@ def home():
 
         username, profile_picture = fetch_query(user_name_query, (user,))[0]
 
-        return render_template('index.html', username=username, profile_picture=profile_picture)
+        fetch_plans = "SELECT plan_name, description, price FROM subscription;"
+
+        all_plans_raw = fetch_query(fetch_plans)
+
+        all_plans = []
+
+        for plan in all_plans_raw:
+            plan_info = {
+                "name": plan[0],
+                "description": plan[1],
+                "price": plan[2]
+            }
+            all_plans.append(plan_info)
+
+        return render_template('index.html', training_plans=all_plans, profile_picture=profile_picture)
+    
     return render_template('index.html')
 
 @main.route('/profile')
