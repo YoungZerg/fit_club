@@ -6,12 +6,16 @@ from datetime import datetime
 from argon2.exceptions import VerifyMismatchError, InvalidHashError
 from dateutil.relativedelta import relativedelta
 from typing import List, Dict
+from os import environ
+
 
 dbname = "fit_club"
 user = "postgres"
 password = "Str0ngP@ssword"
 host = "192.168.1.150"
 port = "5432"
+
+
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', filename='database_operations.log', filemode='a')
 

@@ -35,7 +35,19 @@ def home():
 
         return render_template('index.html', training_plans=all_plans, profile_picture=profile_picture)
     
-    return render_template('index.html')
+    fetch_plans = "SELECT plan_name, description, price FROM subscription;"
+
+    all_plans_raw = fetch_query(fetch_plans)
+    all_plans = []
+    for plan in all_plans_raw:
+        plan_info = {
+            "name": plan[0],
+            "description": plan[1],
+            "price": plan[2]
+        }
+        all_plans.append(plan_info)
+
+    return render_template('index.html', training_plans=all_plans)
 
 @main.route('/profile')
 def user_page():
@@ -114,6 +126,10 @@ def edit_user_profile():
 
 @main.route('/save-changes', methods=["POST"])
 def update_user_profile():
+
+    if 'customer_id' not in session:
+        return redirect(url_for('auth.signup'))
+
     user_id = session['customer_id']
     name = request.form.get('name')
     email = request.form.get('email')
@@ -144,7 +160,9 @@ def update_user_profile():
 
 @main.route('/training_classes')
 def all_classes():
-
+    if 'customer_id' not in session:
+        return redirect(url_for('auth.signup'))
+    
     all_class_sessions_query = """
     SELECT training_session.id,
            training_session.start_time,
@@ -179,6 +197,10 @@ def all_classes():
 
 @main.route('/training_classes/<int:session_id>', methods=["GET", "POST"])
 def apply_class(session_id):
+
+    if 'customer_id' not in session:
+        return redirect(url_for('auth.signup'))
+
     current_user = session['customer_id']
 
     is_user_in_train_session = "SELECT exists(SELECT 1 FROM cust_train_session WHERE training_session = %s AND customer = %s);"
@@ -194,10 +216,7 @@ def apply_class(session_id):
 
 
 @main.route('/equipment')
-def shop_page():
-    if 'customer_id' not in session:
-        return redirect(url_for('auth.login'))
-    
+def shop_page():    
     fetch_all_equipment = """
         SELECT equipment.id, 
                equipment.name,
@@ -305,6 +324,11 @@ def product_details(product_id):
 
 @main.route('/equipment/add-to-cart/<int:equipment_id>', methods=["POST"])
 def add_to_cart(equipment_id):
+
+    if 'customer_id' not in session:
+        flash("Вы должны войти в свой аккаунт или зарегистрироваться, чтобы добавлять товары в корзину.")
+        return redirect(url_for('main.product_details', product_id=equipment_id))
+
     current_user = session['customer_id']
 
     customer_cart_id_query = "SELECT id FROM shopping_session WHERE customer = %s;"
@@ -386,6 +410,9 @@ def user_cart():
 @main.route('/profile/cart/update-item-quantity/<int:equipment_id>', methods=["POST"])
 def update_item_quantity(equipment_id):
     
+    if 'customer_id' not in session:
+        return redirect(url_for('auth.signup'))
+
     action = request.form.get('action')
     current_user = session['customer_id']
 
@@ -428,6 +455,10 @@ def update_item_quantity(equipment_id):
 
 @main.route('/profile/cart/make-order', methods=["POST"])
 def make_order():
+
+    if 'customer_id' not in session:
+        return redirect(url_for('auth.signup'))
+
     current_user = session['customer_id']
 
     current_cart_id_query = "SELECT id FROM shopping_session WHERE customer = %s;"
@@ -443,6 +474,10 @@ def make_order():
     """
 
     cart_items_raw = fetch_query(fetch_cart_items_query, (current_cart_id,))
+
+    if len(cart_items_raw) == 0:
+        flash("Вы не можете сделать заказ, пока не добавили в корзину хотя бы один товар.")
+        return redirect(url_for('main.user_cart'))
 
     order_total = sum([item[2] for item in cart_items_raw])
 
@@ -499,6 +534,9 @@ def user_order_history():
 @main.route('/profile/order-history/<int:order_id>')
 def render_order_info(order_id):
 
+    if 'customer_id' not in session:
+        return redirect(url_for('auth.signup'))
+
     fetch_order_info_query = """
     SELECT id,
            total as order_total_price,
@@ -544,6 +582,10 @@ def render_order_info(order_id):
 
 @main.route('/profile/order-history/<int:order_id>/update-item-quantity/<int:equipment_id>', methods=["POST"])
 def update_order_item_quantity(order_id, equipment_id):
+
+    if 'customer_id' not in session:
+        return redirect(url_for('auth.signup'))
+
     action = request.form.get("action")
 
     fetch_order_status = "SELECT status FROM \"order\" WHERE id = %s;"
@@ -641,6 +683,9 @@ def search_equipment():
 
 @main.route('/profile/training-history')
 def training_history():
+
+    if 'customer_id' not in session:
+        return redirect(url_for('auth.signup'))
 
     current_user = session['customer_id']
 
