@@ -41,7 +41,7 @@ def home():
     all_plans = []
     for plan in all_plans_raw:
         plan_info = {
-            "name": plan[0],
+            "name": plan[0],    
             "description": plan[1],
             "price": plan[2]
         }

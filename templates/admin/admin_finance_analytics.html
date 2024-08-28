@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Финансовая аналитика</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="{{url_for('static', filename='styles/sidebar.css')}}" rel="stylesheet">
+    <link href="{{url_for('static', filename='styles/finance_analytics.css')}}" rel="stylesheet">
+</head>
+<body>
+    {%include 'sidebar.html'%}
+    <div class="main-content">
+        <div class="dashboard-container">
+            <h1 class="dashboard-header">Финансы</h1>
+            <div class="filter-section">
+                <label for="date-select">Выберите период</label>
+                <div id="date-select">
+                    <input type="date" id="start_date"> - <input type="date" id="end_date">
+                    <button id="apply-filter">Применить фильтр</button>
+                </div>
+            </div>
+    
+            <div class="main-charts">
+                <div class="company-income">
+                    <h3>Доход компании</h3>
+                    <canvas id="companyIncomeChart"></canvas>
+                </div>
+                <div class="income-distribution">
+                    <h3>Распределение дохода</h3>
+                    <canvas id="incomeDistributionChart"></canvas>
+                </div>
+            </div>
+    
+            <div class="stats-section">
+                <div class="user-stat">Кол-во проданных спорттоваров <br><span>500</span></div>
+                <div class="user-stat">Кол-во проданных абонементов <br><span>500</span></div>
+            </div>
+    
+            <div class="bottom-charts">
+                <div class="top-categories">
+                    <h3>Топ 3 популярных категории товаров</h3>
+                    <canvas id="topCategoriesChart"></canvas>
+                </div>
+                <div class="top-tariffs">
+                    <h3>Топ по популярности тарифов</h3>
+                    <canvas id="topTariffsChart"></canvas>
+                </div>
+            </div>
+    
+            <div class="order-status-section">
+                <h3>Статус заказов</h3>
+                <div class="order-status">
+                    <canvas id="orderStatusChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="category-graph">
+                <h3>Продажи по категориям</h3>
+                <div class="filter-section">
+                    <select>
+                        <option>КАТЕГОРИЯ</option>
+                    </select>
+                    <select>
+                        <option>ВЫБЕРИТЕ ДЕНЬ/МЕСЯЦ/ГОДА</option>
+                    </select>
+                    <select>
+                        <option>ПЕРИОД</option>
+                    </select>
+                </div>
+                <canvas id="categoryGraph"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{url_for('static', filename='js/finance_analytics.js')}}"></script>
+    <script>
+        document.getElementById('apply-filter').addEventListener('click', function(){
+            const startDate = document.getElementById('start_date').value;
+            const endDate = document.getElementById('end_date').value;
+
+            if(!startDate || !endDate){
+                alert("Пожалуйста, заполните все поля для корректной работы.");
+                return;
+            }
+
+            if(endDate < startDate){
+                alert("Окончание периода не может быть раньше его начала.");
+                return;
+            }
+
+
+            fetchRevenueData(startDate, endDate);
+            fetchCategoriesData(startDate, endDate);
+            fetchOrdersStatusData(startDate, endDate);
+            document.getElementById('start_date').value = "";
+            document.getElementById('end_date').value = "";
+        })
+
+    </script>
+</body>
+</html>

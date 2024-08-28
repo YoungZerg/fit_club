@@ -1,0 +1,114 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #fce4ec;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.dashboard-container {
+    max-width: 1200px;
+    width: 100%;
+    background-color: #ffffff;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box;
+}
+
+.dashboard-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.filter-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.filter-section button,
+.filter-section select {
+    background-color: #fce4ec;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 10px;
+    margin-right: 10px;
+}
+
+.main-charts {
+    display: flex;
+    flex-direction: column; /* Stacks items vertically */
+    gap: 20px; /* Adds space between the two sections */
+}
+
+.company-income,
+.income-distribution {
+    width: 95%; /* Ensures both sections take up the full width */
+    background-color: #fce4ec;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+
+.stats-section {
+    margin-top: 20px;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.user-stat {
+    flex: 1;
+    text-align: center;
+    background-color: #f8bbd0;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    margin-right: 10px;
+}
+
+.user-stat:last-child {
+    margin-right: 0;
+}
+
+.bottom-charts {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.bottom-charts > div {
+    flex: 1;
+    margin-right: 10px;
+    background-color: #fce4ec;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.bottom-charts > div:last-child {
+    margin-right: 0;
+}
+
+.order-status-section {
+    margin-bottom: 20px;
+}
+
+.order-status {
+    background-color: #fce4ec;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.category-graph {
+    background-color: #fce4ec;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}

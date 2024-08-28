@@ -1,0 +1,119 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #fce4ec;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+}
+
+.dashboard-header {
+    text-align: center;
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+.dashboard-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: auto auto auto auto auto; /* Added an extra row */
+    gap: 20px;
+    width: 100%;
+    max-width: 1200px;
+    min-height: 100vh; /* Ensuring the dashboard takes up enough vertical space */
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box;
+}
+
+.date-filter {
+    grid-column: 1 / 4;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #fce4ec;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.date-filter label {
+    margin-right: 10px;
+}
+
+.user-distribution {
+    grid-column: 1 / 2;
+    grid-row: 2 / 3;
+}
+
+.visitor-graph {
+    grid-column: 2 / 4;
+    grid-row: 2 / 3;
+}
+
+.user-stat {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    background-color: #f8bbd0;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    min-height: 100px; /* Added min-height to ensure they show up */
+}
+
+.user-stat:nth-child(3),
+.user-stat:nth-child(4),
+.user-stat:nth-child(5) {
+    grid-column: span 1;
+    grid-row: 3 / 4;
+}
+
+.class-registrations {
+    grid-column: 1 / 4;
+    grid-row: 4 / 5;
+    min-height: 200px; /* Ensure it has enough space */
+}
+
+.top-classes {
+    grid-column: 1 / 2;
+    grid-row: 5 / 6;
+    min-height: 150px; /* Ensure it has enough space */
+}
+
+.top-trainers {
+    grid-column: 2 / 3;
+    grid-row: 5 / 6;
+    min-height: 150px; /* Ensure it has enough space */
+}
+
+canvas {
+    max-width: 100%;
+    height: auto !important;
+}
+
+@media (max-width: 768px) {
+    .dashboard-container {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+    }
+
+    .user-distribution,
+    .visitor-graph,
+    .class-registrations,
+    .top-classes,
+    .top-trainers,
+    .user-stat {
+        grid-column: 1 / 2;
+    }
+
+    .date-filter {
+        grid-column: 1 / 2;
+    }
+}

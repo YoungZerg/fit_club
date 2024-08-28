@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Аналитика пользователей</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="{{url_for('static', filename='styles/sidebar.css')}}" rel="stylesheet">
+    <link href="{{url_for('static', filename='styles/user_analytics.css')}}" rel="stylesheet">
+</head>
+<body>
+    {%include 'sidebar.html'%}
+    <div class="main-content">
+        <div class="dashboard-header">
+        <h1>Аналитика пользователей</h1>
+        <div id="test_output"></div>
+    </div>
+    <div class="dashboard-container">
+        <div class="date-filter">
+            <label for="date-select">Выберите период</label>
+            <div id="date-select">
+                <input type="date" id="start_date"> - <input type="date" id="end_date">
+                <button id="apply-filter">Применить фильтр</button>
+            </div>
+        </div>
+
+        <div class="user-distribution">
+            <h2>Доля пользователей</h2>
+            <canvas id="userDistributionChart"></canvas>
+        </div>
+
+        <div class="user-stat">
+            <p>Кол-во пользователей за период</p>
+            <h3>500</h3>
+        </div>
+        <div class="user-stat">
+            <p>Кол-во зарегистрированных пользователей</p>
+            <h3>38</h3>
+        </div>
+        <div class="user-stat">
+            <p>Кол-во незарегистрированных пользователей</p>
+            <h3>137</h3>
+        </div>
+
+        <div class="visitor-graph">
+            <h2>Число посетителей</h2>
+            <canvas id="visitorGraph"></canvas>
+        </div>
+
+        <div class="class-registrations">
+            <h2>Кол-во записей на разные групповые занятия</h2>
+            <canvas id="classRegistrationsChart"></canvas>
+        </div>
+
+        <div class="top-classes">
+            <h2>Топ 3 популярных классов</h2>
+            <canvas id="topClassesChart"></canvas>
+        </div>
+
+        <div class="top-trainers">
+            <h2>Топ 3 популярных тренеров</h2>
+            <canvas id="topTrainersChart"></canvas>
+        </div>
+    </div>
+    </div>
+    
+
+    <script src="{{url_for('static', filename='js/user_analytics.js')}}"></script>
+    <script>
+        document.getElementById('apply-filter').addEventListener('click', function(){
+            const startDate = document.getElementById('start_date').value;
+            const endDate = document.getElementById('end_date').value;
+
+            if(!startDate || !endDate){
+                alert("Пожалуйста, заполните все поля для корректной работы.");
+                return;
+            }
+
+            if(endDate < startDate){
+                alert("Окончание периода не может быть раньше его начала.");
+                return;
+            }
+
+
+            fetchCoursePopularity(startDate, endDate);
+            fetchTrainerPopularity(startDate, endDate)
+            document.getElementById('start_date').value = "";
+            document.getElementById('end_date').value = "";
+        })
+
+    </script>
+</body>
+</html>

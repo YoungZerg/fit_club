@@ -37,12 +37,22 @@
         <div class="row">
             <div class="col-md-4">
                 <div class="card">
-                    <div class="card-header">Аналитика</div>
+                    <div class="card-header">Аналитика пользователей</div>
                     <div class="card-body">
-                        <p>Здесь данные собраные в аналитические графики и отчеты.</p>
-                        <a href="#" class="btn btn-primary">Go to Users</a>
+                        <p>Графики, анализирующие деятельность пользователей.</p>
+                        <a href="{{url_for('admin.user_analytics')}}" class="btn btn-primary">Перейти</a>
                     </div>
                 </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">Финансовая аналитика</div>
+                    <div class="card-body">
+                        <p>Графики, анализирующие финансовую деятельность фитнес-клуба.</p>
+                        <a href="{{url_for('admin.finance_analytics')}}" class="btn btn-primary">Перейти</a>
+                    </div>
+                </div>
+    
             </div>
         </div>
     </div>

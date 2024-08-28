@@ -1,10 +1,12 @@
 import os
-from flask import render_template, Blueprint, session, redirect, url_for, request, flash
+from flask import render_template, Blueprint, session, redirect, url_for, request, flash, jsonify
 from fit_club.database.db import fetch_query, create_new_admin, verify_password, create_new_equipment, add_category, add_class, new_training_session, execute_query
 from argon2 import PasswordHasher
 from fit_club.misc.functions import allowed_file
 from werkzeug.utils import secure_filename
-from datetime import datetime
+from datetime import datetime, timedelta
+from random import randint
+from collections import defaultdict
 
 UPLOAD_EQUIPMENT_DIR = os.path.join('\\'.join(os.path.dirname(os.path.abspath(__file__)).split('\\')[:-1]), r'static\images\uploads\equipment')
 
@@ -533,3 +535,215 @@ def manage_user_subscription(user_id):
         all_plans.append(plan_info)
 
     return render_template('admin_user_subscription.html', user=user_info, plans=all_plans)
+
+
+@admin.route('/admin-home/analytics/user-analytics')
+def user_analytics():
+    return render_template('admin_user_analytics.html')
+
+@admin.route('/admin-home/analytics/finance_analytics')
+def finance_analytics():
+    return render_template('admin_finance_analytics.html')
+
+@admin.route('/admin/class_statistics', methods=["POST"])
+def class_statistics():
+
+    period = request.get_json()
+    period_start, period_end = period['start_date'], period['end_date']
+
+    fetch_course_popularity = """
+    SELECT COUNT(*),
+           class.name
+    FROM training_session
+    INNER JOIN cust_train_session ON cust_train_session.training_session = training_session.id
+    INNER JOIN class ON class.id = training_session.class
+    WHERE DATE(training_session.start_time) >= %s AND DATE(training_session.end_time) <= %s 
+    GROUP BY class.name
+    ORDER BY COUNT(*) DESC;
+    """
+
+    course_popularity_raw = fetch_query(fetch_course_popularity, (period_start, period_end))
+    course_popularity = []
+
+    for course in course_popularity_raw:
+        course_info = {
+            "course_name": course[1],
+            "course_participants": course[0]
+        }
+        course_popularity.append(course_info)
+
+    return jsonify(course_popularity)
+
+@admin.route('/admin/trainers_statistics', methods=["POST"])
+def trainers_statistics():
+
+    period = request.get_json()
+    period_start, period_end = period['start_date'], period['end_date']
+
+    fetch_trainers_popularity = """
+    SELECT COUNT(*),
+           trainer.name
+    FROM training_session
+    INNER JOIN cust_train_session ON cust_train_session.training_session = training_session.id
+    INNER JOIN trainer ON trainer.id = training_session.trainer
+    WHERE DATE(training_session.start_time) >= %s AND DATE(training_session.end_time) <= %s 
+    GROUP BY trainer.name
+    ORDER BY COUNT(*) DESC;
+    """
+
+    trainers_popularity_raw = fetch_query(fetch_trainers_popularity, (period_start, period_end))
+    trainers_popularity = []
+
+    for trainer in trainers_popularity_raw:
+        trainer_info = {
+            "trainer_name": trainer[1],
+            "trainer_clients": trainer[0]
+        }
+        trainers_popularity.append(trainer_info)
+
+    return jsonify(trainers_popularity)
+
+
+@admin.route('/admin/revenue_data', methods=['POST'])
+def revenue():
+    period = request.get_json()
+    period_start_str, period_end_str = period['start_date'], period['end_date']
+
+    
+    period_start = datetime.strptime(period_start_str, '%Y-%m-%d')
+    period_end = datetime.strptime(period_end_str, '%Y-%m-%d')
+
+    fetch_revenue_data = """
+    SELECT DATE(created_at),
+           SUM(total)
+    FROM "order"
+    WHERE DATE(created_at) >= %s AND DATE(created_at) <= %s
+    GROUP BY DATE(created_at)
+    ORDER BY DATE(created_at);
+    """
+
+    revenue_data_raw = fetch_query(fetch_revenue_data, (period_start, period_end))
+
+    revenue_data = {}
+
+    for revenue in revenue_data_raw:
+        revenue_data[revenue[0].strftime('%Y-%m-%d')] = int(revenue[1])
+
+    complete_dates = [period_start + timedelta(days=x) for x in range((period_end - period_start).days + 1)]
+    products_revenue_data = {date: revenue_data.get(date.strftime('%Y-%m-%d'), 0) for date in complete_dates}
+    products_revenue_data = [{"day" :date.strftime('%Y-%m-%d'), "product_revenue": revenue} for date, revenue in products_revenue_data.items()]
+
+    #for test purpose only
+    #because currently we're not tracking training plan sales
+    plan_price = {
+        0: 0,
+        1: 16000,
+        2: 21000,
+        3: 30000
+    }
+
+    plans_revenue_data = [{"day": date.strftime('%Y-%m-%d'), "plan_revenue":plan_price[randint(0,3)]*randint(1,3)} for date in complete_dates]    
+
+    total_revenue_by_day = {}
+
+    for entry in products_revenue_data:
+        day = entry["day"]
+        revenue = entry["product_revenue"]
+        
+        total_revenue_by_day[day] = revenue
+
+
+    for entry in plans_revenue_data:
+        day = entry["day"]
+        revenue = entry["plan_revenue"]
+
+        total_revenue_by_day[day] += revenue
+
+    total_revenue_data = [{"day": day, "total_revenue": revenue} for day, revenue in total_revenue_by_day.items()]
+
+
+    return jsonify(products_revenue=products_revenue_data,
+                   plans_revenue=plans_revenue_data,
+                   total_revenue=total_revenue_data)
+
+
+
+@admin.route('/admin/categories_data', methods=["POST"])
+def categories_info():
+
+    period = request.get_json()
+    period_start_str, period_end_str = period['start_date'], period['end_date']
+
+    
+    period_start = datetime.strptime(period_start_str, '%Y-%m-%d')
+    period_end = datetime.strptime(period_end_str, '%Y-%m-%d')
+
+    complete_dates = [period_start + timedelta(days=x) for x in range((period_end - period_start).days + 1)]
+    complete_dates_str = [date.strftime('%Y-%m-%d') for date in complete_dates]
+
+    fetch_categories_data = """
+    SELECT "order".created_at::date as order_date,
+           SUM(order_items.quantity) as total_items,
+           category.name
+    FROM order_items
+    INNER JOIN "order" ON "order".id = order_items."order"
+    INNER JOIN equipment ON equipment.id = order_items.equipment
+    INNER JOIN category ON category.id = equipment.category
+    WHERE "order".created_at BETWEEN %s AND %s
+    GROUP BY order_date, category.name
+    ORDER BY order_date, category.name;
+    """
+
+    categories_data_row = fetch_query(fetch_categories_data, (period_start, period_end))
+
+
+    categories_dict = defaultdict(lambda: {date: 0 for date in complete_dates_str})
+    all_categories = set()
+    top_3_categories_dict = defaultdict(int)
+
+    for row in categories_data_row:
+        date = row[0].strftime('%Y-%m-%d')
+        quantity = row[1]
+        category_name = row[2] 
+        categories_dict[category_name][date] = quantity
+        all_categories.add(category_name)
+        top_3_categories_dict[category_name] += quantity
+
+    top_3_categories_data = [{"name": name, "total_products": total_products} for name, total_products in sorted(top_3_categories_dict.items(), key=lambda item: item[1], reverse=True)]
+    top_3_categories_data = top_3_categories_data[:3]
+
+
+    categories_data = []
+    for category in all_categories:
+        quantities = [categories_dict[category].get(date, 0) for date in complete_dates_str]
+        categories_data.append({
+            "name": category,
+            "quantities": quantities
+        })
+
+    return jsonify(dates=complete_dates_str, categories_data=categories_data, top_3_categories_data=top_3_categories_data)
+
+
+@admin.route('/admin/orders_status', methods=["POST"])
+def orders():
+
+    period = request.get_json()
+    period_start_str, period_end_str = period['start_date'], period['end_date']
+
+    period_start = datetime.strptime(period_start_str, '%Y-%m-%d')
+    period_end = datetime.strptime(period_end_str, '%Y-%m-%d')
+
+    fetch_orders_status = """
+    SELECT COUNT(*),
+           "order".status
+    FROM "order"
+    WHERE "order".created_at >= %s AND "order".created_at <= %s 
+    GROUP BY "order".status
+    ORDER BY COUNT(*);
+    """
+
+    order_status_result = fetch_query(fetch_orders_status, (period_start, period_end))
+
+    orders_status = [{"orders_quantity": order[0], "order_status": order[1]} for order in order_status_result]
+
+    return jsonify(orders_status)
